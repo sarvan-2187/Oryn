@@ -1,7 +1,7 @@
 import { create } from 'zustand'
 import type { Space } from '../../shared/types'
 
-export type View = 'notes' | 'archive'
+export type View = 'dashboard' | 'notes' | 'tasks' | 'habits' | 'archive'
 
 interface State {
   spaces: Space[]
@@ -11,6 +11,9 @@ interface State {
   activeNoteId: number | null
   theme: 'dark' | 'light'
   paletteOpen: boolean
+  sidebarOpen: boolean
+  /** UI scale. 1 is 100%; clamped so the app can never become unusable. */
+  zoom: number
 
   loadSpaces: () => Promise<void>
   setSpace: (id: number | null) => void
@@ -18,24 +21,44 @@ interface State {
   setNote: (id: number | null) => void
   toggleTheme: () => void
   setPalette: (open: boolean) => void
+  toggleSidebar: () => void
+  setZoom: (factor: number) => void
+  nudgeZoom: (delta: number) => void
+}
+
+const ZOOM_MIN = 0.8
+const ZOOM_MAX = 1.6
+
+function applyZoom(factor: number): void {
+  localStorage.setItem('oryn.zoom', String(factor))
+  window.oryn?.window?.setZoom(factor)
 }
 
 function applyTheme(theme: 'dark' | 'light'): void {
   document.documentElement.classList.toggle('light', theme === 'light')
   document.documentElement.classList.toggle('dark', theme === 'dark')
   localStorage.setItem('oryn.theme', theme)
+  // The native window buttons are painted by the OS, so they need telling too.
+  void window.oryn?.window?.setTheme(theme)
 }
 
 const startTheme = (localStorage.getItem('oryn.theme') as 'dark' | 'light' | null) ?? 'dark'
 applyTheme(startTheme)
 
+const startSidebar = localStorage.getItem('oryn.sidebar') !== 'closed'
+
+const startZoom = Number(localStorage.getItem('oryn.zoom') ?? '1') || 1
+applyZoom(startZoom)
+
 export const useStore = create<State>((set, get) => ({
   spaces: [],
   activeSpaceId: null,
-  activeView: 'notes',
+  activeView: 'dashboard',
   activeNoteId: null,
   theme: startTheme,
   paletteOpen: false,
+  sidebarOpen: startSidebar,
+  zoom: startZoom,
 
   loadSpaces: async () => set({ spaces: await window.oryn.spaces.list() }),
   setSpace: (id) => set({ activeSpaceId: id, activeNoteId: null }),
@@ -46,5 +69,16 @@ export const useStore = create<State>((set, get) => ({
     applyTheme(next)
     set({ theme: next })
   },
-  setPalette: (open) => set({ paletteOpen: open })
+  setPalette: (open) => set({ paletteOpen: open }),
+  toggleSidebar: () => {
+    const next = !get().sidebarOpen
+    localStorage.setItem('oryn.sidebar', next ? 'open' : 'closed')
+    set({ sidebarOpen: next })
+  },
+  setZoom: (factor) => {
+    const next = Math.min(ZOOM_MAX, Math.max(ZOOM_MIN, Number(factor.toFixed(2))))
+    applyZoom(next)
+    set({ zoom: next })
+  },
+  nudgeZoom: (delta) => get().setZoom(get().zoom + delta)
 }))

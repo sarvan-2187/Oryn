@@ -1,11 +1,15 @@
 import { useEffect } from 'react'
 import { useStore } from './store'
+import { TopBar } from './components/TopBar'
 import { Sidebar } from './components/Sidebar'
 import { CommandPalette } from './components/CommandPalette'
+import { DashboardView } from './views/Dashboard'
 import { NotesView } from './views/Notes'
+import { TasksView } from './views/Tasks'
+import { HabitsView } from './views/Habits'
 
 export default function App(): React.JSX.Element {
-  const { loadSpaces, activeView, setPalette, paletteOpen } = useStore()
+  const { loadSpaces, activeView, activeSpaceId, setPalette, paletteOpen, sidebarOpen } = useStore()
 
   useEffect(() => {
     void loadSpaces()
@@ -18,17 +22,43 @@ export default function App(): React.JSX.Element {
         setPalette(!useStore.getState().paletteOpen)
       }
       if (e.key === 'Escape') setPalette(false)
+
+      // Ctrl +/-/0 scales the interface, as in a browser.
+      if (e.ctrlKey || e.metaKey) {
+        const { nudgeZoom, setZoom } = useStore.getState()
+        if (e.key === '=' || e.key === '+') {
+          e.preventDefault()
+          nudgeZoom(0.1)
+        } else if (e.key === '-' || e.key === '_') {
+          e.preventDefault()
+          nudgeZoom(-0.1)
+        } else if (e.key === '0') {
+          e.preventDefault()
+          setZoom(1)
+        }
+      }
     }
     window.addEventListener('keydown', onKey)
     return () => window.removeEventListener('keydown', onKey)
   }, [setPalette])
 
+  // Views are keyed by space so switching space refetches rather than showing
+  // the previous space's rows until the next render settles.
+  const key = `${activeView}-${activeSpaceId ?? 'all'}`
+
   return (
-    <div className="flex h-full">
-      <Sidebar />
-      <main className="flex min-w-0 flex-1">
-        <NotesView key={activeView} archived={activeView === 'archive'} />
-      </main>
+    <div className="flex h-full flex-col">
+      <TopBar />
+      <div className="flex min-h-0 flex-1">
+        {sidebarOpen && <Sidebar />}
+        <main className="flex min-w-0 flex-1">
+          {activeView === 'dashboard' && <DashboardView key={key} />}
+          {activeView === 'notes' && <NotesView key={key} archived={false} />}
+          {activeView === 'archive' && <NotesView key={key} archived />}
+          {activeView === 'tasks' && <TasksView key={key} />}
+          {activeView === 'habits' && <HabitsView key={key} />}
+        </main>
+      </div>
       {paletteOpen && <CommandPalette />}
     </div>
   )

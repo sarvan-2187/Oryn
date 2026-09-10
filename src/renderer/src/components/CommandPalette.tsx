@@ -1,15 +1,25 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { Command } from 'cmdk'
-import { useStore } from '../store'
+import { useStore, type View } from '../store'
 import type { NoteSummary } from '../../../shared/types'
+
+const GROUP_HEADING =
+  '[&_[cmdk-group-heading]]:px-2 [&_[cmdk-group-heading]]:py-1 [&_[cmdk-group-heading]]:text-[13px] [&_[cmdk-group-heading]]:uppercase [&_[cmdk-group-heading]]:tracking-wider [&_[cmdk-group-heading]]:text-faint'
+
+interface Action {
+  id: string
+  label: string
+  run: () => void
+}
 
 export function CommandPalette(): React.JSX.Element | null {
   const { paletteOpen, setPalette, spaces, setSpace, setView, setNote, toggleTheme, activeSpaceId } =
     useStore()
   const [query, setQuery] = useState('')
-  const [results, setResults] = useState<NoteSummary[]>([])
+  const [notes, setNotes] = useState<NoteSummary[]>([])
 
-  // Search runs in the main process, so cmdk's own filtering is turned off.
+  // Note search runs in the main process, so cmdk's own filtering stays off and
+  // the action list is filtered here against the same query.
   useEffect(() => {
     if (!paletteOpen) return
     let cancelled = false
@@ -17,7 +27,7 @@ export function CommandPalette(): React.JSX.Element | null {
       const rows = query.trim()
         ? await window.oryn.notes.search(query, null)
         : await window.oryn.notes.list({ spaceId: null })
-      if (!cancelled) setResults(rows.slice(0, 20))
+      if (!cancelled) setNotes(rows.slice(0, 20))
     }
     void run()
     return () => {
@@ -29,8 +39,6 @@ export function CommandPalette(): React.JSX.Element | null {
     if (!paletteOpen) setQuery('')
   }, [paletteOpen])
 
-  if (!paletteOpen) return null
-
   const close = (): void => setPalette(false)
 
   const openNote = (id: number): void => {
@@ -39,12 +47,59 @@ export function CommandPalette(): React.JSX.Element | null {
     close()
   }
 
-  const newNote = async (): Promise<void> => {
-    const target = activeSpaceId ?? spaces.find((s) => !s.is_system)?.id
-    if (target == null) return
-    const created = await window.oryn.notes.create({ spaceId: target })
-    openNote(created.id)
-  }
+  const actions = useMemo<Action[]>(() => {
+    const go = (view: View, label: string): Action => ({
+      id: `view-${view}`,
+      label,
+      run: () => {
+        setView(view)
+        close()
+      }
+    })
+    return [
+      {
+        id: 'new-note',
+        label: 'New note',
+        run: () => {
+          const target = activeSpaceId ?? spaces.find((s) => !s.is_system)?.id
+          if (target == null) return
+          void window.oryn.notes.create({ spaceId: target }).then((n) => openNote(n.id))
+        }
+      },
+      go('dashboard', 'Go to Today'),
+      go('notes', 'Go to Notes'),
+      go('tasks', 'Go to Tasks'),
+      go('habits', 'Go to Habits'),
+      go('archive', 'Go to Archive'),
+      ...spaces
+        .filter((s) => !s.is_system)
+        .map((s) => ({
+          id: `space-${s.id}`,
+          label: `Switch to ${s.name}`,
+          run: () => {
+            setSpace(s.id)
+            close()
+          }
+        })),
+      {
+        id: 'theme',
+        label: 'Toggle theme',
+        run: () => {
+          toggleTheme()
+          close()
+        }
+      }
+    ]
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [spaces, activeSpaceId])
+
+  const visibleActions = useMemo(() => {
+    const q = query.trim().toLowerCase()
+    if (!q) return actions
+    return actions.filter((a) => a.label.toLowerCase().includes(q))
+  }, [actions, query])
+
+  if (!paletteOpen) return null
 
   return (
     <div
@@ -61,68 +116,29 @@ export function CommandPalette(): React.JSX.Element | null {
             value={query}
             onValueChange={setQuery}
             placeholder="Search notes or run a command…"
-            className="w-full border-b border-border bg-transparent px-4 py-3 text-[14px] outline-none placeholder:text-faint"
+            className="w-full border-b border-border bg-transparent px-4 py-3 text-[17px] outline-none placeholder:text-faint"
           />
           <Command.List className="max-h-[340px] overflow-y-auto p-2">
-            <Command.Empty className="px-3 py-6 text-center text-[13px] text-faint">
-              Nothing found.
-            </Command.Empty>
+            {visibleActions.length === 0 && notes.length === 0 && (
+              <div className="px-3 py-6 text-center text-[16px] text-faint">Nothing found.</div>
+            )}
 
-            <Command.Group
-              heading="Actions"
-              className="[&_[cmdk-group-heading]]:px-2 [&_[cmdk-group-heading]]:py-1 [&_[cmdk-group-heading]]:text-[11px] [&_[cmdk-group-heading]]:uppercase [&_[cmdk-group-heading]]:tracking-wider [&_[cmdk-group-heading]]:text-faint"
-            >
-              <Item onSelect={() => void newNote()}>New note</Item>
-              <Item
-                onSelect={() => {
-                  toggleTheme()
-                  close()
-                }}
-              >
-                Toggle theme
-              </Item>
-              <Item
-                onSelect={() => {
-                  setSpace(null)
-                  setView('notes')
-                  close()
-                }}
-              >
-                Go to all notes
-              </Item>
-              <Item
-                onSelect={() => {
-                  setView('archive')
-                  close()
-                }}
-              >
-                Go to archive
-              </Item>
-              {spaces
-                .filter((s) => !s.is_system)
-                .map((s) => (
-                  <Item
-                    key={`space-${s.id}`}
-                    onSelect={() => {
-                      setSpace(s.id)
-                      setView('notes')
-                      close()
-                    }}
-                  >
-                    Switch to {s.name}
+            {visibleActions.length > 0 && (
+              <Command.Group heading="Actions" className={GROUP_HEADING}>
+                {visibleActions.map((a) => (
+                  <Item key={a.id} value={a.id} onSelect={a.run}>
+                    {a.label}
                   </Item>
                 ))}
-            </Command.Group>
+              </Command.Group>
+            )}
 
-            {results.length > 0 && (
-              <Command.Group
-                heading="Notes"
-                className="[&_[cmdk-group-heading]]:px-2 [&_[cmdk-group-heading]]:py-1 [&_[cmdk-group-heading]]:text-[11px] [&_[cmdk-group-heading]]:uppercase [&_[cmdk-group-heading]]:tracking-wider [&_[cmdk-group-heading]]:text-faint"
-              >
-                {results.map((n) => (
-                  <Item key={n.id} onSelect={() => openNote(n.id)}>
+            {notes.length > 0 && (
+              <Command.Group heading="Notes" className={GROUP_HEADING}>
+                {notes.map((n) => (
+                  <Item key={n.id} value={`note-${n.id}`} onSelect={() => openNote(n.id)}>
                     <span className="truncate">{n.title || 'Untitled'}</span>
-                    <span className="ml-2 truncate text-[12px] text-faint">{n.excerpt}</span>
+                    <span className="ml-2 truncate text-[15px] text-faint">{n.excerpt}</span>
                   </Item>
                 ))}
               </Command.Group>
@@ -136,15 +152,18 @@ export function CommandPalette(): React.JSX.Element | null {
 
 function Item({
   children,
+  value,
   onSelect
 }: {
   children: React.ReactNode
+  value: string
   onSelect: () => void
 }): React.JSX.Element {
   return (
     <Command.Item
+      value={value}
       onSelect={onSelect}
-      className="flex cursor-pointer items-center rounded-md px-3 py-2 text-[13px] data-[selected=true]:bg-surface-2"
+      className="flex cursor-pointer items-center rounded-md px-3 py-2 text-[16px] data-[selected=true]:bg-surface-2"
     >
       {children}
     </Command.Item>

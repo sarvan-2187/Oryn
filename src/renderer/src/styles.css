@@ -8,30 +8,36 @@
   --font-sans: 'Geist Variable', system-ui, sans-serif;
   --font-mono: 'Geist Mono Variable', ui-monospace, monospace;
 
-  --color-bg: #0b0d10;
-  --color-surface: #14171c;
-  --color-surface-2: #1b1f26;
-  --color-border: #262b33;
-  --color-text: #e6e9ef;
-  --color-muted: #8b93a1;
-  --color-faint: #5a626f;
-  --color-accent: #4d7ea8;
+  /* Deep black. Every grey tone here clears WCAG AA against #000. */
+  --color-bg: #000000;
+  --color-surface: #0a0a0c;
+  --color-surface-2: #16161a;
+  --color-border: #26262c;
+  --color-text: #f4f4f6;
+  --color-muted: #9c9ca6;
+  --color-faint: #767680;
+  --color-accent: #5e93c4;
   --color-accent-soft: #33495f;
-  --color-danger: #e5484d;
-  --color-success: #30a46c;
-  --color-warn: #f5a524;
+  --color-danger: #ff6369;
+  --color-success: #3dd68c;
+  --color-warn: #ffb224;
 }
 
+/* Pearl white: a warm off-white rather than a flat #fff, so long reading
+   sessions are easier and the surfaces still separate from the page. */
 html.light {
-  --color-bg: #ffffff;
-  --color-surface: #f7f8fa;
-  --color-surface-2: #eef0f4;
-  --color-border: #dfe3e9;
-  --color-text: #14171c;
-  --color-muted: #5f6773;
-  --color-faint: #949cab;
-  --color-accent: #33495f;
+  --color-bg: #faf8f3;
+  --color-surface: #f2efe8;
+  --color-surface-2: #e8e4da;
+  --color-border: #dcd7cb;
+  --color-text: #17161b;
+  --color-muted: #5e5c66;
+  --color-faint: #6e6c77;
+  --color-accent: #2f5c86;
   --color-accent-soft: #cfdcea;
+  --color-danger: #c62a30;
+  --color-success: #1a7f4b;
+  --color-warn: #9a6100;
 }
 
 html,
@@ -45,7 +51,7 @@ body {
   background: var(--color-bg);
   color: var(--color-text);
   font-family: var(--font-sans);
-  font-size: 14px;
+  font-size: 16px;
   overflow: hidden;
 }
 
@@ -72,11 +78,17 @@ body {
   --bn-font-family-mono: var(--font-mono);
   background: transparent;
 }
+/* The drag handle and + button live in a left gutter outside the text column.
+   Zeroing this padding pushes them off the pane and over the notes list. */
 .oryn-editor .bn-editor {
-  padding-inline: 0;
+  padding-inline: 54px;
   background: transparent;
+}
+.oryn-editor .bn-block-content {
+  font-size: 17px;
 }
 .oryn-editor code,
 .oryn-editor pre {
   font-family: var(--font-mono);
+  font-size: 15px;
 }
