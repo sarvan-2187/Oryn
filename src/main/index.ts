@@ -50,6 +50,11 @@ if (!app.requestSingleInstanceLock()) {
   })
 
   void app.whenReady().then(() => {
+    // Windows groups taskbar buttons and routes notifications by this id.
+    // The taskbar *icon* still comes from the running .exe, so in dev it is
+    // Electron's own; the packaged Oryn.exe embeds resources/icon.png.
+    if (process.platform === 'win32') app.setAppUserModelId('com.oryn.app')
+
     getDb() // opens the file and runs migrations before any IPC can arrive
     registerIpc()
     createWindow()
