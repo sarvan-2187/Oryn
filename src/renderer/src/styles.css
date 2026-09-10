@@ -1,0 +1,82 @@
+@import '@fontsource-variable/geist';
+@import '@fontsource-variable/geist-mono';
+@import 'tailwindcss';
+
+/* Dark by default, light via .light on <html>. Tokens only, never raw colours
+   in components, so the light theme stays a one-file change. */
+@theme {
+  --font-sans: 'Geist Variable', system-ui, sans-serif;
+  --font-mono: 'Geist Mono Variable', ui-monospace, monospace;
+
+  --color-bg: #0b0d10;
+  --color-surface: #14171c;
+  --color-surface-2: #1b1f26;
+  --color-border: #262b33;
+  --color-text: #e6e9ef;
+  --color-muted: #8b93a1;
+  --color-faint: #5a626f;
+  --color-accent: #4d7ea8;
+  --color-accent-soft: #33495f;
+  --color-danger: #e5484d;
+  --color-success: #30a46c;
+  --color-warn: #f5a524;
+}
+
+html.light {
+  --color-bg: #ffffff;
+  --color-surface: #f7f8fa;
+  --color-surface-2: #eef0f4;
+  --color-border: #dfe3e9;
+  --color-text: #14171c;
+  --color-muted: #5f6773;
+  --color-faint: #949cab;
+  --color-accent: #33495f;
+  --color-accent-soft: #cfdcea;
+}
+
+html,
+body,
+#root {
+  height: 100%;
+}
+
+body {
+  margin: 0;
+  background: var(--color-bg);
+  color: var(--color-text);
+  font-family: var(--font-sans);
+  font-size: 14px;
+  overflow: hidden;
+}
+
+::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+::-webkit-scrollbar-thumb {
+  background: var(--color-border);
+  border-radius: 6px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+/* Nothing in a desktop shell should be text-selectable except real content. */
+.select-none-ui {
+  user-select: none;
+}
+
+/* BlockNote inherits Oryn's palette and Geist rather than shipping its own. */
+.oryn-editor {
+  --bn-font-family: var(--font-sans);
+  --bn-font-family-mono: var(--font-mono);
+  background: transparent;
+}
+.oryn-editor .bn-editor {
+  padding-inline: 0;
+  background: transparent;
+}
+.oryn-editor code,
+.oryn-editor pre {
+  font-family: var(--font-mono);
+}
