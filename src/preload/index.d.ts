@@ -12,7 +12,13 @@ import type {
   HabitToday,
   HabitStats,
   HabitKind,
-  JournalEntry
+  JournalEntry,
+  ActivityMetric,
+  ActivityResult,
+  Deadline,
+  DeadlineKind,
+  ClassSlot,
+  Capture
 } from '../shared/types'
 
 export interface OrynApi {
@@ -48,7 +54,10 @@ export interface OrynApi {
     update(id: number, patch: TaskPatch): Promise<void>
     toggle(id: number, date?: string): Promise<Task | undefined>
     delete(id: number): Promise<void>
-    counts(date?: string, spaceId?: number | null): Promise<{ due: number; overdue: number; done: number }>
+    counts(
+      date?: string,
+      spaceId?: number | null
+    ): Promise<{ due: number; overdue: number; done: number }>
   }
   habits: {
     list(spaceId?: number | null): Promise<Habit[]>
@@ -71,6 +80,62 @@ export interface OrynApi {
   journal: {
     get(date?: string): Promise<JournalEntry>
     save(date: string, contentJson: string, contentText: string): Promise<void>
+  }
+  stats: {
+    activity(metric: ActivityMetric, opts?: { days?: number; to?: string }): Promise<ActivityResult>
+  }
+  deadlines: {
+    list(opts?: { spaceId?: number | null; includePast?: boolean }): Promise<Deadline[]>
+    create(input: {
+      spaceId: number
+      title: string
+      date: string
+      kind?: DeadlineKind
+    }): Promise<Deadline>
+    update(id: number, patch: Partial<Deadline>): Promise<void>
+    delete(id: number): Promise<void>
+  }
+  classes: {
+    list(dayOfWeek?: number): Promise<ClassSlot[]>
+    create(input: {
+      subject: string
+      dayOfWeek: number
+      startTime: string
+      endTime: string
+      location?: string
+      spaceId?: number | null
+    }): Promise<ClassSlot>
+    delete(id: number): Promise<void>
+  }
+  focus: {
+    log(minutes: number, taskId?: number | null, date?: string): Promise<void>
+    minutes(date?: string): Promise<number>
+  }
+  captures: {
+    list(): Promise<Capture[]>
+    count(): Promise<number>
+    delete(id: number): Promise<void>
+    convert(
+      id: number,
+      target: 'note' | 'task',
+      spaceId: number
+    ): Promise<{ kind: 'note' | 'task'; id: number } | undefined>
+    /** Returns an unsubscribe function. */
+    onChanged(cb: () => void): () => void
+  }
+  capture: {
+    save(text: string): Promise<Capture | undefined>
+    close(): Promise<void>
+    /** Resolves false when the OS refuses the accelerator. */
+    setHotkey(accelerator: string): Promise<boolean>
+    getHotkey(): Promise<string>
+    onOpened(cb: () => void): () => void
+  }
+  data: {
+    path(): Promise<string>
+    backup(): Promise<{ path: string }>
+    export(): Promise<{ path: string; files: number } | null>
+    reveal(target: string): Promise<void>
   }
   window: {
     /** Repaints the native min/max/close buttons to match the app theme. */

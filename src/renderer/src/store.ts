@@ -1,7 +1,17 @@
 import { create } from 'zustand'
 import type { Space } from '../../shared/types'
 
-export type View = 'dashboard' | 'notes' | 'tasks' | 'habits' | 'archive'
+export type View =
+  | 'dashboard'
+  | 'notes'
+  | 'tasks'
+  | 'board'
+  | 'habits'
+  | 'activity'
+  | 'planner'
+  | 'inbox'
+  | 'settings'
+  | 'archive'
 
 interface State {
   spaces: Space[]

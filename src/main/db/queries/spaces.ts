@@ -4,9 +4,7 @@ import type { Space } from '../../../shared/types'
 export type { Space }
 
 export function listSpaces(): Space[] {
-  return getDb()
-    .prepare('SELECT * FROM spaces ORDER BY sort_order, id')
-    .all() as Space[]
+  return getDb().prepare('SELECT * FROM spaces ORDER BY sort_order, id').all() as Space[]
 }
 
 export function createSpace(input: { name: string; icon?: string; color?: string }): Space {
@@ -20,7 +18,10 @@ export function createSpace(input: { name: string; icon?: string; color?: string
   return db.prepare('SELECT * FROM spaces WHERE id = ?').get(lastInsertRowid) as Space
 }
 
-export function updateSpace(id: number, patch: Partial<Pick<Space, 'name' | 'icon' | 'color'>>): void {
+export function updateSpace(
+  id: number,
+  patch: Partial<Pick<Space, 'name' | 'icon' | 'color'>>
+): void {
   const fields = Object.keys(patch) as (keyof typeof patch)[]
   if (fields.length === 0) return
   const set = fields.map((f) => `${f} = ?`).join(', ')
@@ -36,7 +37,7 @@ export function deleteSpace(id: number): void {
 
 export function inboxSpaceId(): number {
   const row = getDb()
-    .prepare("SELECT id FROM spaces WHERE is_system = 1 ORDER BY id LIMIT 1")
+    .prepare('SELECT id FROM spaces WHERE is_system = 1 ORDER BY id LIMIT 1')
     .get() as { id: number } | undefined
   return row?.id ?? 1
 }

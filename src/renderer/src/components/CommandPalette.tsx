@@ -13,8 +13,16 @@ interface Action {
 }
 
 export function CommandPalette(): React.JSX.Element | null {
-  const { paletteOpen, setPalette, spaces, setSpace, setView, setNote, toggleTheme, activeSpaceId } =
-    useStore()
+  const {
+    paletteOpen,
+    setPalette,
+    spaces,
+    setSpace,
+    setView,
+    setNote,
+    toggleTheme,
+    activeSpaceId
+  } = useStore()
   const [query, setQuery] = useState('')
   const [notes, setNotes] = useState<NoteSummary[]>([])
 

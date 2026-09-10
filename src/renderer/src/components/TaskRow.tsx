@@ -56,13 +56,7 @@ const FIELD =
   'rounded border border-border bg-bg px-1.5 py-1 text-[15px] text-muted outline-none focus:border-accent'
 
 /** Inline editor for every field of a task. Escape cancels, Enter saves. */
-function TaskEditor({
-  task,
-  onDone
-}: {
-  task: Task
-  onDone: () => void
-}): React.JSX.Element {
+function TaskEditor({ task, onDone }: { task: Task; onDone: () => void }): React.JSX.Element {
   const { spaces } = useStore()
   const [title, setTitle] = useState(task.title)
   const [description, setDescription] = useState(task.description)

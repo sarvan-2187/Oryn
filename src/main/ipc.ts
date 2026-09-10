@@ -4,6 +4,10 @@ import * as notes from './db/queries/notes'
 import * as tasks from './db/queries/tasks'
 import * as habits from './db/queries/habits'
 import * as journal from './db/queries/journal'
+import * as stats from './db/queries/stats'
+import * as planner from './db/queries/planner'
+import { backupNow, exportMarkdown, revealPath } from './backup'
+import { dbPath } from './db/connection'
 
 /**
  * Every renderer-callable function lives in this map. The preload script mirrors
@@ -41,7 +45,31 @@ const handlers = {
   'habits:history': habits.habitHistory,
 
   'journal:get': journal.getJournal,
-  'journal:save': journal.saveJournal
+  'journal:save': journal.saveJournal,
+
+  'stats:activity': stats.activity,
+
+  'deadlines:list': planner.listDeadlines,
+  'deadlines:create': planner.createDeadline,
+  'deadlines:update': planner.updateDeadline,
+  'deadlines:delete': planner.deleteDeadline,
+
+  'classes:list': planner.listClasses,
+  'classes:create': planner.createClass,
+  'classes:delete': planner.deleteClass,
+
+  'focus:log': planner.logFocus,
+  'focus:minutes': planner.focusMinutes,
+
+  'captures:list': planner.listCaptures,
+  'captures:count': planner.captureCount,
+  'captures:delete': planner.deleteCapture,
+  'captures:convert': planner.convertCapture,
+
+  'data:path': dbPath,
+  'data:backup': backupNow,
+  'data:export': exportMarkdown,
+  'data:reveal': revealPath
 } as const
 
 export type Handlers = typeof handlers

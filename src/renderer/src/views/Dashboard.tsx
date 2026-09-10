@@ -1,10 +1,15 @@
-import { useCallback, useEffect, useState } from 'react'
+import { useCallback, useEffect, useMemo, useState } from 'react'
 import { useStore } from '../store'
 import { HabitCheckin } from '../components/HabitCheckin'
 import { TaskRow } from '../components/TaskRow'
 import { Editor } from '../components/Editor'
+import { Pomodoro } from '../components/Pomodoro'
+import { countdown } from './Planner'
 import { fromDateStr, today } from '../../../shared/dates'
-import type { HabitToday, TaskTree, JournalEntry } from '../../../shared/types'
+import type { HabitToday, TaskTree, JournalEntry, ClassSlot, Deadline } from '../../../shared/types'
+
+/** Only deadlines inside this window are worth interrupting the day for. */
+const DEADLINE_HORIZON_DAYS = 30
 
 function Section({
   title,
@@ -29,21 +34,32 @@ function Section({
 export function DashboardView(): React.JSX.Element {
   const { activeSpaceId, theme, setView } = useStore()
   const day = today()
+  const horizon = useMemo(() => {
+    const d = fromDateStr(day)
+    d.setDate(d.getDate() + DEADLINE_HORIZON_DAYS)
+    return d.toISOString().slice(0, 10)
+  }, [day])
   const [habits, setHabits] = useState<HabitToday[]>([])
   const [tasks, setTasks] = useState<TaskTree[]>([])
   const [counts, setCounts] = useState({ due: 0, overdue: 0, done: 0 })
   const [journal, setJournal] = useState<JournalEntry | null>(null)
+  const [classes, setClasses] = useState<ClassSlot[]>([])
+  const [deadlines, setDeadlines] = useState<Deadline[]>([])
 
   const refresh = useCallback(async () => {
-    const [h, t, c] = await Promise.all([
+    const [h, t, c, cls, dl] = await Promise.all([
       window.oryn.habits.forDate(day, activeSpaceId),
       window.oryn.tasks.list({ spaceId: activeSpaceId, scope: 'today', date: day }),
-      window.oryn.tasks.counts(day, activeSpaceId)
+      window.oryn.tasks.counts(day, activeSpaceId),
+      window.oryn.classes.list(fromDateStr(day).getDay()),
+      window.oryn.deadlines.list({ spaceId: activeSpaceId })
     ])
     setHabits(h)
     setTasks(t)
     setCounts(c)
-  }, [activeSpaceId, day])
+    setClasses(cls)
+    setDeadlines(dl.filter((d) => countdown(d.date).text !== '' && d.date <= horizon))
+  }, [activeSpaceId, day, horizon])
 
   useEffect(() => {
     void refresh()
@@ -113,6 +129,61 @@ export function DashboardView(): React.JSX.Element {
               tasks.map((t) => <TaskRow key={t.id} task={t} onChanged={() => void refresh()} />)
             )}
           </div>
+        </Section>
+
+        {classes.length > 0 && (
+          <Section title="Today's classes">
+            <div className="overflow-hidden rounded-lg border border-border bg-surface">
+              {classes.map((c) => (
+                <div
+                  key={c.id}
+                  className="flex items-baseline gap-3 border-b border-border/60 px-3 py-2 last:border-0"
+                >
+                  <span className="font-mono text-[14px] tabular-nums text-faint">
+                    {c.start_time}–{c.end_time}
+                  </span>
+                  <span className="min-w-0 flex-1 truncate text-[15px]">{c.subject}</span>
+                  {c.location && <span className="text-[13px] text-faint">{c.location}</span>}
+                </div>
+              ))}
+            </div>
+          </Section>
+        )}
+
+        {deadlines.length > 0 && (
+          <Section
+            title="Coming up"
+            right={
+              <button
+                onClick={() => setView('planner')}
+                className="text-[12px] text-faint hover:text-muted"
+              >
+                planner
+              </button>
+            }
+          >
+            <div className="overflow-hidden rounded-lg border border-border bg-surface">
+              {deadlines.map((d) => {
+                const c = countdown(d.date)
+                return (
+                  <div
+                    key={d.id}
+                    className="flex items-center gap-3 border-b border-border/60 px-3 py-2 last:border-0"
+                  >
+                    <span className="text-[12px] uppercase tracking-wide text-faint">{d.kind}</span>
+                    <span className="min-w-0 flex-1 truncate text-[15px]">{d.title}</span>
+                    <span className={`text-[14px] ${c.urgent ? 'text-danger' : 'text-muted'}`}>
+                      {c.text}
+                    </span>
+                  </div>
+                )
+              })}
+            </div>
+          </Section>
+        )}
+
+        <Section title="Focus">
+          <Pomodoro onLogged={() => void refresh()} />
         </Section>
 
         <Section title="Journal">

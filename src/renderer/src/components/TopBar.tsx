@@ -15,7 +15,9 @@ const VIEWS: { id: View; label: string }[] = [
   { id: 'dashboard', label: 'Today' },
   { id: 'notes', label: 'Notes' },
   { id: 'tasks', label: 'Tasks' },
-  { id: 'habits', label: 'Habits' }
+  { id: 'board', label: 'Board' },
+  { id: 'habits', label: 'Habits' },
+  { id: 'activity', label: 'Activity' }
 ]
 
 function IconButton({
@@ -57,10 +59,10 @@ export function TopBar(): React.JSX.Element {
     <header
       // The whole bar drags the window; interactive children opt back out.
       style={{ height: TITLEBAR_HEIGHT, WebkitAppRegion: 'drag' } as React.CSSProperties}
-      className="select-none-ui relative flex shrink-0 items-center border-b border-border bg-surface px-2"
+      className="select-none-ui flex shrink-0 items-center gap-2 border-b border-border bg-surface px-2"
     >
       <div
-        className="flex items-center gap-1"
+        className="flex flex-1 items-center gap-1 overflow-hidden"
         style={{ WebkitAppRegion: 'no-drag' } as React.CSSProperties}
       >
         <IconButton label={sidebarOpen ? 'Hide sidebar' : 'Show sidebar'} onClick={toggleSidebar}>
@@ -73,12 +75,9 @@ export function TopBar(): React.JSX.Element {
         </div>
       </div>
 
-      {/* Centred on the window rather than in the flex flow, so it stays put
-          as the left and right clusters change width. */}
-      <div
-        className="absolute left-1/2 -translate-x-1/2"
-        style={{ WebkitAppRegion: 'no-drag' } as React.CSSProperties}
-      >
+      {/* Kept in the flex flow between the two clusters. Absolute centring
+          looked tidier with four views but overlapped the search box at six. */}
+      <div className="shrink-0" style={{ WebkitAppRegion: 'no-drag' } as React.CSSProperties}>
         <nav className="flex items-center gap-0.5 rounded-full border border-border bg-bg p-0.5">
           {VIEWS.map((v) => (
             <button
@@ -97,7 +96,7 @@ export function TopBar(): React.JSX.Element {
       </div>
 
       <div
-        className="ml-auto flex items-center gap-1"
+        className="flex flex-1 items-center justify-end gap-1 overflow-hidden"
         style={
           { WebkitAppRegion: 'no-drag', marginRight: WINDOW_CONTROLS_WIDTH } as React.CSSProperties
         }
@@ -107,8 +106,8 @@ export function TopBar(): React.JSX.Element {
           className="flex items-center gap-2 rounded-md border border-border px-2 py-1 text-[15px] text-faint transition-colors hover:border-accent hover:text-muted"
         >
           <SearchIcon className="size-4" />
-          <span>Search</span>
-          <kbd className="font-mono text-[12px]">Ctrl K</kbd>
+          <span className="hidden lg:inline">Search</span>
+          <kbd className="hidden font-mono text-[12px] xl:inline">Ctrl K</kbd>
         </button>
 
         <div className="flex items-center rounded-md border border-border">
@@ -141,11 +140,7 @@ export function TopBar(): React.JSX.Element {
           label={theme === 'dark' ? 'Switch to light theme' : 'Switch to dark theme'}
           onClick={toggleTheme}
         >
-          {theme === 'dark' ? (
-            <SunIcon className="size-4.5" />
-          ) : (
-            <MoonIcon className="size-4.5" />
-          )}
+          {theme === 'dark' ? <SunIcon className="size-4.5" /> : <MoonIcon className="size-4.5" />}
         </IconButton>
       </div>
     </header>

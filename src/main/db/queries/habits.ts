@@ -36,7 +36,9 @@ export function createHabit(input: {
   color?: string
 }): Habit {
   const db = getDb()
-  const max = db.prepare('SELECT COALESCE(MAX(sort_order), 0) AS m FROM habits').get() as { m: number }
+  const max = db.prepare('SELECT COALESCE(MAX(sort_order), 0) AS m FROM habits').get() as {
+    m: number
+  }
   const { lastInsertRowid } = db
     .prepare(
       'INSERT INTO habits (space_id, name, kind, target, unit, color, sort_order) VALUES (?, ?, ?, ?, ?, ?, ?)'
@@ -55,7 +57,9 @@ export function createHabit(input: {
 
 export function updateHabit(
   id: number,
-  patch: Partial<Pick<Habit, 'name' | 'kind' | 'target' | 'unit' | 'color' | 'is_active' | 'space_id'>>
+  patch: Partial<
+    Pick<Habit, 'name' | 'kind' | 'target' | 'unit' | 'color' | 'is_active' | 'space_id'>
+  >
 ): void {
   const keys = Object.keys(patch) as (keyof typeof patch)[]
   if (keys.length === 0) return
@@ -91,8 +95,7 @@ export function setHabitValue(habitId: number, date: string, value: number): voi
 export function toggleHabit(habitId: number, date: string): void {
   const db = getDb()
   const habit = db.prepare('SELECT target FROM habits WHERE id = ?').get(habitId) as
-    | { target: number }
-    | undefined
+    { target: number } | undefined
   if (!habit) return
   const existing = db
     .prepare('SELECT value FROM habit_entries WHERE habit_id = ? AND date = ?')

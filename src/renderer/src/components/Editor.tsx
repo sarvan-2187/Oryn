@@ -55,11 +55,6 @@ export function Editor({ noteId, initialContent, theme, onSave }: Props): React.
   }, [noteId])
 
   return (
-    <BlockNoteView
-      editor={editor}
-      theme={theme}
-      onChange={handleChange}
-      className="oryn-editor"
-    />
+    <BlockNoteView editor={editor} theme={theme} onChange={handleChange} className="oryn-editor" />
   )
 }

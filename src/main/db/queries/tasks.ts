@@ -12,7 +12,9 @@ export type Scope = 'today' | 'upcoming' | 'all' | 'someday'
  * `today` deliberately keeps tasks completed today in the list, so ticking one
  * off gives feedback instead of making it vanish mid-click.
  */
-export function listTasks(opts: { spaceId?: number | null; scope?: Scope; date?: string } = {}): TaskTree[] {
+export function listTasks(
+  opts: { spaceId?: number | null; scope?: Scope; date?: string } = {}
+): TaskTree[] {
   const db = getDb()
   const day = opts.date ?? today()
   const where: string[] = ['parent_id IS NULL']
@@ -108,7 +110,9 @@ export function updateTask(id: number, patch: TaskPatch): void {
   }
   if (set.length === 0) return
   params.push(id)
-  getDb().prepare(`UPDATE tasks SET ${set.join(', ')}, updated_at = datetime('now') WHERE id = ?`).run(...params)
+  getDb()
+    .prepare(`UPDATE tasks SET ${set.join(', ')}, updated_at = datetime('now') WHERE id = ?`)
+    .run(...params)
 }
 
 /**
@@ -167,7 +171,10 @@ export function deleteTask(id: number): void {
 }
 
 /** Counts for the dashboard header. */
-export function taskCounts(date?: string, spaceId?: number | null): { due: number; overdue: number; done: number } {
+export function taskCounts(
+  date?: string,
+  spaceId?: number | null
+): { due: number; overdue: number; done: number } {
   const day = date ?? today()
   const scope = spaceId != null ? 'AND space_id = ?' : ''
   const args = spaceId != null ? [spaceId] : []

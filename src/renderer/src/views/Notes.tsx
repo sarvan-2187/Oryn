@@ -200,15 +200,14 @@ export function NotesView({ archived }: { archived: boolean }): React.JSX.Elemen
                 )}
                 {archived ? 'Restore' : 'Archive'}
               </button>
-              {archived && (
-                <button
-                  onClick={() => void destroy()}
-                  className="flex shrink-0 items-center gap-1.5 rounded-md border border-border px-2 py-1.5 text-[15px] text-muted hover:border-danger hover:text-danger"
-                >
-                  <Trash2Icon className="size-4" />
-                  Delete
-                </button>
-              )}
+              <button
+                onClick={() => void destroy()}
+                title="Delete permanently"
+                aria-label="Delete note permanently"
+                className="grid size-8 shrink-0 place-items-center rounded-md border border-border text-muted hover:border-danger hover:text-danger"
+              >
+                <Trash2Icon className="size-4" />
+              </button>
             </div>
             <div className="flex-1 overflow-y-auto py-4">
               <Editor

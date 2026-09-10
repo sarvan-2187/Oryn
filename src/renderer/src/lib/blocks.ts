@@ -35,5 +35,11 @@ export function blocksToText(blocks: unknown): string {
 
 /** First non-empty line, used as the fallback note title. */
 export function firstLine(text: string): string {
-  return text.split('\n').find((l) => l.trim())?.trim().slice(0, 120) ?? ''
+  return (
+    text
+      .split('\n')
+      .find((l) => l.trim())
+      ?.trim()
+      .slice(0, 120) ?? ''
+  )
 }

@@ -100,3 +100,59 @@ export interface JournalEntry {
   content_json: string
   content_text: string
 }
+
+export type ActivityMetric =
+  | { kind: 'all' }
+  | { kind: 'tasks' }
+  | { kind: 'notes' }
+  | { kind: 'focus' }
+  | { kind: 'habit'; habitId: number }
+  | { kind: 'space'; spaceId: number }
+
+export interface ActivityResult {
+  from: string
+  to: string
+  /** Date to value; days with no activity are absent rather than zero. */
+  history: Record<string, number>
+  total: number
+  active_days: number
+  current_streak: number
+  longest_streak: number
+  best_day: string | null
+  best_value: number
+}
+
+export type DeadlineKind = 'exam' | 'submission' | 'hackathon'
+
+export interface Deadline {
+  id: number
+  space_id: number
+  title: string
+  date: string
+  kind: DeadlineKind
+}
+
+export interface ClassSlot {
+  id: number
+  space_id: number | null
+  subject: string
+  day_of_week: number
+  start_time: string
+  end_time: string
+  location: string
+}
+
+export interface FocusSession {
+  id: number
+  task_id: number | null
+  started_at: string
+  date: string
+  minutes: number
+}
+
+export interface Capture {
+  id: number
+  text: string
+  created_at: string
+  processed_at: string | null
+}

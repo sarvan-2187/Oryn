@@ -6,7 +6,12 @@ import { CommandPalette } from './components/CommandPalette'
 import { DashboardView } from './views/Dashboard'
 import { NotesView } from './views/Notes'
 import { TasksView } from './views/Tasks'
+import { BoardView } from './views/Board'
 import { HabitsView } from './views/Habits'
+import { ActivityView } from './views/Activity'
+import { PlannerView } from './views/Planner'
+import { InboxView } from './views/Inbox'
+import { SettingsView } from './views/Settings'
 
 export default function App(): React.JSX.Element {
   const { loadSpaces, activeView, activeSpaceId, setPalette, paletteOpen, sidebarOpen } = useStore()
@@ -56,7 +61,12 @@ export default function App(): React.JSX.Element {
           {activeView === 'notes' && <NotesView key={key} archived={false} />}
           {activeView === 'archive' && <NotesView key={key} archived />}
           {activeView === 'tasks' && <TasksView key={key} />}
+          {activeView === 'board' && <BoardView key={key} />}
           {activeView === 'habits' && <HabitsView key={key} />}
+          {activeView === 'activity' && <ActivityView key={key} />}
+          {activeView === 'planner' && <PlannerView key={key} />}
+          {activeView === 'inbox' && <InboxView key={key} />}
+          {activeView === 'settings' && <SettingsView key={key} />}
         </main>
       </div>
       {paletteOpen && <CommandPalette />}

@@ -9,8 +9,7 @@ export function getJournal(date?: string): JournalEntry {
   const db = getDb()
   const day = date ?? today()
   const existing = db.prepare('SELECT * FROM journal WHERE date = ?').get(day) as
-    | JournalEntry
-    | undefined
+    JournalEntry | undefined
   if (existing) return existing
   db.prepare('INSERT INTO journal (date) VALUES (?)').run(day)
   return db.prepare('SELECT * FROM journal WHERE date = ?').get(day) as JournalEntry

@@ -1,7 +1,9 @@
-import { app, shell, BrowserWindow, ipcMain, nativeImage } from 'electron'
+import { app, shell, BrowserWindow, ipcMain, Menu, nativeImage, Tray } from 'electron'
 import { join } from 'node:path'
 import { getDb, closeDb } from './db/connection'
 import { registerIpc } from './ipc'
+import { globalShortcut } from 'electron'
+import { currentHotkey, registerCaptureIpc, registerHotkey, toggleCaptureWindow } from './capture'
 
 const isDev = !app.isPackaged
 
@@ -13,6 +15,50 @@ const OVERLAY = {
   dark: { color: '#0a0a0c', symbolColor: '#9c9ca6' },
   light: { color: '#f2efe8', symbolColor: '#5e5c66' }
 } as const
+
+/** Kept alive at module scope: a garbage-collected Tray disappears from the shelf. */
+let tray: Tray | null = null
+
+/**
+ * Resolves the same way packaged and unpackaged: `out/main` sits two levels
+ * below the project root in dev and below the asar root once built, and
+ * resources/ is bundled alongside it.
+ */
+function iconPath(): string {
+  return join(__dirname, '../../resources/icon.png')
+}
+
+function showMainWindow(): void {
+  const [win] = BrowserWindow.getAllWindows().filter((w) => !w.isDestroyed())
+  if (!win) {
+    createWindow()
+    return
+  }
+  if (win.isMinimized()) win.restore()
+  win.show()
+  win.focus()
+}
+
+function buildTray(): void {
+  if (tray) return
+  tray = new Tray(nativeImage.createFromPath(iconPath()).resize({ width: 16, height: 16 }))
+  tray.setToolTip('Oryn')
+  tray.setContextMenu(
+    Menu.buildFromTemplate([
+      { label: 'Open Oryn', click: showMainWindow },
+      { label: `Quick capture (${currentHotkey()})`, click: toggleCaptureWindow },
+      { type: 'separator' },
+      {
+        label: 'Quit',
+        click: () => {
+          ;(app as unknown as { isQuitting?: boolean }).isQuitting = true
+          app.quit()
+        }
+      }
+    ])
+  )
+  tray.on('double-click', showMainWindow)
+}
 
 function createWindow(): void {
   const win = new BrowserWindow({
@@ -28,7 +74,7 @@ function createWindow(): void {
     // stay native, so Windows keeps snap layouts and correct hit targets.
     titleBarStyle: 'hidden',
     titleBarOverlay: { ...OVERLAY.dark, height: TITLEBAR_HEIGHT },
-    icon: nativeImage.createFromPath(join(__dirname, '../../resources/icon.png')),
+    icon: nativeImage.createFromPath(iconPath()),
     webPreferences: {
       preload: join(__dirname, '../preload/index.js'),
       contextIsolation: true,
@@ -80,6 +126,11 @@ if (needsLock && !app.requestSingleInstanceLock()) {
       win?.setTitleBarOverlay?.({ ...OVERLAY[theme], height: TITLEBAR_HEIGHT })
     })
 
+    registerCaptureIpc()
+    // A hotkey the OS refuses must not leave the app silently without one.
+    if (!registerHotkey(currentHotkey())) console.warn('hotkey rejected:', currentHotkey())
+    buildTray()
+
     createWindow()
 
     app.on('activate', () => {
@@ -91,5 +142,16 @@ if (needsLock && !app.requestSingleInstanceLock()) {
     if (process.platform !== 'darwin') app.quit()
   })
 
-  app.on('will-quit', closeDb)
+  app.on('before-quit', () => {
+    ;(app as unknown as { isQuitting?: boolean }).isQuitting = true
+  })
+
+  app.on('will-quit', () => {
+    globalShortcutCleanup()
+    closeDb()
+  })
+}
+
+function globalShortcutCleanup(): void {
+  globalShortcut.unregisterAll()
 }

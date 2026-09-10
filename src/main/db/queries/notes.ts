@@ -8,7 +8,9 @@ const SUMMARY_COLS = `
   substr(content_text, 1, 140) AS excerpt
 `
 
-export function listNotes(opts: { spaceId?: number | null; archived?: boolean } = {}): NoteSummary[] {
+export function listNotes(
+  opts: { spaceId?: number | null; archived?: boolean } = {}
+): NoteSummary[] {
   const where: string[] = [opts.archived ? 'archived_at IS NOT NULL' : 'archived_at IS NULL']
   const params: unknown[] = []
   if (opts.spaceId != null) {
@@ -39,25 +41,41 @@ export function createNote(input: { spaceId: number; title?: string }): Note {
  * Saves editor content. `contentText` is the flattened plain text the FTS index
  * is built from, so it must be passed whenever contentJson changes.
  */
-export function updateNote(
-  id: number,
-  patch: NotePatch
-): void {
+export function updateNote(id: number, patch: NotePatch): void {
   const set: string[] = []
   const params: unknown[] = []
-  if (patch.title !== undefined) { set.push('title = ?'); params.push(patch.title) }
-  if (patch.contentJson !== undefined) { set.push('content_json = ?'); params.push(patch.contentJson) }
-  if (patch.contentText !== undefined) { set.push('content_text = ?'); params.push(patch.contentText) }
-  if (patch.spaceId !== undefined) { set.push('space_id = ?'); params.push(patch.spaceId) }
-  if (patch.isPinned !== undefined) { set.push('is_pinned = ?'); params.push(patch.isPinned ? 1 : 0) }
+  if (patch.title !== undefined) {
+    set.push('title = ?')
+    params.push(patch.title)
+  }
+  if (patch.contentJson !== undefined) {
+    set.push('content_json = ?')
+    params.push(patch.contentJson)
+  }
+  if (patch.contentText !== undefined) {
+    set.push('content_text = ?')
+    params.push(patch.contentText)
+  }
+  if (patch.spaceId !== undefined) {
+    set.push('space_id = ?')
+    params.push(patch.spaceId)
+  }
+  if (patch.isPinned !== undefined) {
+    set.push('is_pinned = ?')
+    params.push(patch.isPinned ? 1 : 0)
+  }
   if (set.length === 0) return
   params.push(id)
-  getDb().prepare(`UPDATE notes SET ${set.join(', ')}, updated_at = datetime('now') WHERE id = ?`).run(...params)
+  getDb()
+    .prepare(`UPDATE notes SET ${set.join(', ')}, updated_at = datetime('now') WHERE id = ?`)
+    .run(...params)
 }
 
 export function archiveNote(id: number, archived = true): void {
   getDb()
-    .prepare(`UPDATE notes SET archived_at = ${archived ? "datetime('now')" : 'NULL'}, updated_at = datetime('now') WHERE id = ?`)
+    .prepare(
+      `UPDATE notes SET archived_at = ${archived ? "datetime('now')" : 'NULL'}, updated_at = datetime('now') WHERE id = ?`
+    )
     .run(id)
 }
 
@@ -82,7 +100,10 @@ export function searchNotes(query: string, spaceId?: number | null): NoteSummary
   if (!match) return []
   const params: unknown[] = [match]
   let extra = ''
-  if (spaceId != null) { extra = 'AND n.space_id = ?'; params.push(spaceId) }
+  if (spaceId != null) {
+    extra = 'AND n.space_id = ?'
+    params.push(spaceId)
+  }
   return getDb()
     .prepare(
       `SELECT n.id, n.space_id, n.title, n.is_pinned, n.archived_at, n.created_at, n.updated_at,

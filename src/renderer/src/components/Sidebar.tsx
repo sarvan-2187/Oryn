@@ -1,6 +1,13 @@
-import { useState } from 'react'
-import { useStore } from '../store'
+import { useEffect, useState } from 'react'
+import { useStore, type View } from '../store'
 import { PlusIcon } from 'lucide-react'
+
+const SECONDARY: { id: View; label: string }[] = [
+  { id: 'inbox', label: 'Inbox' },
+  { id: 'planner', label: 'Planner' },
+  { id: 'archive', label: 'Archive' },
+  { id: 'settings', label: 'Settings' }
+]
 
 function Row({
   active,
@@ -33,6 +40,14 @@ export function Sidebar(): React.JSX.Element {
   const { spaces, activeSpaceId, setSpace, activeView, setView } = useStore()
   const [adding, setAdding] = useState(false)
   const [name, setName] = useState('')
+  const [inbox, setInbox] = useState(0)
+
+  // The count comes from the popup window too, so it listens rather than polls.
+  useEffect(() => {
+    const load = (): void => void window.oryn.captures.count().then(setInbox)
+    load()
+    return window.oryn.captures.onChanged(load)
+  }, [activeView])
 
   const create = async (): Promise<void> => {
     const text = name.trim()
@@ -93,15 +108,25 @@ export function Sidebar(): React.JSX.Element {
         )}
       </div>
 
-      <div className="mt-auto p-2">
-        <button
-          onClick={() => setView('archive')}
-          className={`w-full rounded-md px-2 py-1.5 text-left text-[16px] transition-colors ${
-            activeView === 'archive' ? 'bg-surface-2 text-text' : 'text-faint hover:text-muted'
-          }`}
-        >
-          Archive
-        </button>
+      <div className="mt-auto flex flex-col gap-0.5 p-2">
+        {SECONDARY.map((item) => (
+          <button
+            key={item.id}
+            onClick={() => setView(item.id)}
+            className={`flex w-full items-center rounded-md px-2 py-1.5 text-left text-[16px] transition-colors ${
+              activeView === item.id
+                ? 'bg-surface-2 text-text'
+                : 'text-faint hover:bg-surface-2/60 hover:text-muted'
+            }`}
+          >
+            <span className="truncate">{item.label}</span>
+            {item.id === 'inbox' && inbox > 0 && (
+              <span className="ml-auto rounded-full bg-accent/20 px-1.5 text-[13px] tabular-nums text-accent">
+                {inbox}
+              </span>
+            )}
+          </button>
+        ))}
       </div>
     </aside>
   )
