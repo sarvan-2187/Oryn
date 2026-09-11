@@ -4,6 +4,7 @@ import { getDb, closeDb } from './db/connection'
 import { registerIpc } from './ipc'
 import { globalShortcut } from 'electron'
 import { currentHotkey, registerCaptureIpc, registerHotkey, toggleCaptureWindow } from './capture'
+import { startReminders } from './reminders'
 
 const isDev = !app.isPackaged
 
@@ -18,6 +19,9 @@ const OVERLAY = {
 
 /** Kept alive at module scope: a garbage-collected Tray disappears from the shelf. */
 let tray: Tray | null = null
+
+/** Set once reminders start; cleared and called on quit to stop the hourly check. */
+let stopReminders: (() => void) | null = null
 
 /**
  * Resolves the same way packaged and unpackaged: `out/main` sits two levels
@@ -130,6 +134,7 @@ if (needsLock && !app.requestSingleInstanceLock()) {
     // A hotkey the OS refuses must not leave the app silently without one.
     if (!registerHotkey(currentHotkey())) console.warn('hotkey rejected:', currentHotkey())
     buildTray()
+    stopReminders = startReminders(showMainWindow)
 
     createWindow()
 
@@ -147,6 +152,7 @@ if (needsLock && !app.requestSingleInstanceLock()) {
   })
 
   app.on('will-quit', () => {
+    stopReminders?.()
     globalShortcutCleanup()
     closeDb()
   })
