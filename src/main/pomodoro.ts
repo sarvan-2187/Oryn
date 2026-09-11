@@ -1,4 +1,5 @@
-import { BrowserWindow } from 'electron'
+import { app, BrowserWindow } from 'electron'
+import { join } from 'node:path'
 import { logFocus } from './db/queries/planner'
 import type { PomodoroState } from '../shared/types'
 
@@ -79,4 +80,40 @@ export function resetPomodoro(): PomodoroState {
 export function startPomodoroTicker(): () => void {
   const timer = setInterval(tick, 500)
   return () => clearInterval(timer)
+}
+
+let miniWin: BrowserWindow | null = null
+
+/** A small always-on-top window mirroring the dashboard's Pomodoro widget. */
+export function openMiniPomodoro(): void {
+  if (miniWin && !miniWin.isDestroyed()) {
+    miniWin.show()
+    miniWin.focus()
+    return
+  }
+
+  miniWin = new BrowserWindow({
+    width: 320,
+    height: 68,
+    resizable: false,
+    frame: false,
+    alwaysOnTop: true,
+    skipTaskbar: true,
+    backgroundColor: '#0a0a0c',
+    webPreferences: {
+      preload: join(__dirname, '../preload/index.js'),
+      contextIsolation: true,
+      nodeIntegration: false,
+      sandbox: false
+    }
+  })
+  miniWin.setAlwaysOnTop(true, 'screen-saver')
+
+  const devUrl = process.env.ELECTRON_RENDERER_URL
+  if (!app.isPackaged && devUrl) void miniWin.loadURL(`${devUrl}/pomodoro.html`)
+  else void miniWin.loadFile(join(__dirname, '../renderer/pomodoro.html'))
+
+  miniWin.on('closed', () => {
+    miniWin = null
+  })
 }

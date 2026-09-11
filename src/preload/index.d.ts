@@ -192,6 +192,7 @@ export interface OrynApi {
     state(): Promise<PomodoroState>
     toggle(): Promise<PomodoroState>
     reset(): Promise<PomodoroState>
+    openMini(): Promise<void>
     /** Returns an unsubscribe function. */
     onTick(cb: (state: PomodoroState) => void): () => void
   }

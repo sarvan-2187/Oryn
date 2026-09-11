@@ -134,6 +134,7 @@ const api = {
     state: invoke('pomodoro:state'),
     toggle: invoke('pomodoro:toggle'),
     reset: invoke('pomodoro:reset'),
+    openMini: invoke('pomodoro:openMini'),
     onTick: (cb: (state: import('../shared/types').PomodoroState) => void) => {
       const handler = (
         _e: IpcRendererEvent,
