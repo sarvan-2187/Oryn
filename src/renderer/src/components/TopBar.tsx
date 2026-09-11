@@ -1,4 +1,4 @@
-import { MinusIcon, MoonIcon, PanelLeftIcon, PlusIcon, SearchIcon, SunIcon } from 'lucide-react'
+import { PanelLeftIcon, SearchIcon } from 'lucide-react'
 import { useStore, type View } from '../store'
 import icon from '../assets/icon.svg'
 
@@ -42,18 +42,7 @@ function IconButton({
 }
 
 export function TopBar(): React.JSX.Element {
-  const {
-    activeView,
-    setView,
-    theme,
-    toggleTheme,
-    setPalette,
-    sidebarOpen,
-    toggleSidebar,
-    zoom,
-    setZoom,
-    nudgeZoom
-  } = useStore()
+  const { activeView, setView, setPalette, sidebarOpen, toggleSidebar } = useStore()
 
   return (
     <header
@@ -110,38 +99,6 @@ export function TopBar(): React.JSX.Element {
           <kbd className="hidden font-mono text-[12px] xl:inline">Ctrl K</kbd>
         </button>
 
-        <div className="flex items-center rounded-md border border-border">
-          <button
-            onClick={() => nudgeZoom(-0.1)}
-            aria-label="Smaller text"
-            title="Smaller text (Ctrl -)"
-            className="grid size-7 place-items-center text-faint hover:text-text"
-          >
-            <MinusIcon className="size-4" />
-          </button>
-          <button
-            onClick={() => setZoom(1)}
-            title="Reset size (Ctrl 0)"
-            className="min-w-[46px] px-1 py-1 font-mono text-[12px] tabular-nums text-faint hover:text-text"
-          >
-            {Math.round(zoom * 100)}%
-          </button>
-          <button
-            onClick={() => nudgeZoom(0.1)}
-            aria-label="Larger text"
-            title="Larger text (Ctrl +)"
-            className="grid size-7 place-items-center text-faint hover:text-text"
-          >
-            <PlusIcon className="size-4" />
-          </button>
-        </div>
-
-        <IconButton
-          label={theme === 'dark' ? 'Switch to light theme' : 'Switch to dark theme'}
-          onClick={toggleTheme}
-        >
-          {theme === 'dark' ? <SunIcon className="size-4.5" /> : <MoonIcon className="size-4.5" />}
-        </IconButton>
       </div>
     </header>
   )
