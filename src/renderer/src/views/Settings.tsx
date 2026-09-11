@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
 import { useStore } from '../store'
+import type { Template } from '../../../shared/types'
 
 function Row({
   title,
@@ -25,11 +26,14 @@ const BUTTON =
   'rounded-md border border-border px-2.5 py-1.5 text-[14px] text-muted hover:border-accent hover:text-text'
 
 export function SettingsView(): React.JSX.Element {
-  const { theme, toggleTheme, zoom, setZoom } = useStore()
+  const { theme, toggleTheme, zoom, setZoom, spaces, activeSpaceId } = useStore()
   const [dbFile, setDbFile] = useState('')
   const [hotkey, setHotkey] = useState('')
   const [draftHotkey, setDraftHotkey] = useState('')
   const [status, setStatus] = useState<string | null>(null)
+  const [templates, setTemplates] = useState<Template[]>([])
+  const [templateTitle, setTemplateTitle] = useState('')
+  const [templateItems, setTemplateItems] = useState('')
 
   useEffect(() => {
     void window.oryn.data.path().then(setDbFile)
@@ -38,6 +42,39 @@ export function SettingsView(): React.JSX.Element {
       setDraftHotkey(h)
     })
   }, [])
+
+  const refreshTemplates = async (): Promise<void> => {
+    setTemplates(await window.oryn.templates.list())
+  }
+
+  useEffect(() => {
+    void refreshTemplates()
+  }, [])
+
+  const addTemplate = async (): Promise<void> => {
+    const title = templateTitle.trim()
+    const items = templateItems
+      .split('\n')
+      .map((s) => s.trim())
+      .filter(Boolean)
+    if (!title || items.length === 0) return
+    await window.oryn.templates.create(title, items)
+    setTemplateTitle('')
+    setTemplateItems('')
+    await refreshTemplates()
+  }
+
+  const removeTemplate = async (id: number): Promise<void> => {
+    await window.oryn.templates.delete(id)
+    await refreshTemplates()
+  }
+
+  const spawnTemplate = async (id: number): Promise<void> => {
+    const target = activeSpaceId ?? spaces.find((s) => !s.is_system)?.id
+    if (target == null) return
+    await window.oryn.templates.spawn(id, target)
+    setStatus('Added to today.')
+  }
 
   const saveHotkey = async (): Promise<void> => {
     const ok = await window.oryn.capture.setHotkey(draftHotkey.trim())
@@ -135,6 +172,50 @@ export function SettingsView(): React.JSX.Element {
               Export
             </button>
           </Row>
+        </section>
+
+        <h2 className="mb-2 mt-6 text-[12px] font-medium uppercase tracking-wider text-faint">
+          Checklist templates
+        </h2>
+        <section className="rounded-lg border border-border bg-surface p-3">
+          <input
+            value={templateTitle}
+            onChange={(e) => setTemplateTitle(e.target.value)}
+            placeholder="Template name, e.g. Morning routine"
+            className="w-full bg-transparent px-1 py-1 text-[15px] outline-none placeholder:text-faint"
+          />
+          <textarea
+            value={templateItems}
+            onChange={(e) => setTemplateItems(e.target.value)}
+            placeholder="One item per line"
+            rows={3}
+            className="mt-1 w-full rounded border border-border bg-bg px-2 py-1.5 text-[14px] outline-none placeholder:text-faint focus:border-accent"
+          />
+          <button onClick={() => void addTemplate()} className={`${BUTTON} mt-2`}>
+            Add template
+          </button>
+
+          {templates.length > 0 && (
+            <div className="mt-3 flex flex-col gap-2">
+              {templates.map((t) => (
+                <div
+                  key={t.id}
+                  className="flex items-center gap-2 rounded-md border border-border/60 px-2 py-1.5"
+                >
+                  <div className="min-w-0 flex-1">
+                    <div className="text-[14px]">{t.title}</div>
+                    <div className="text-[12px] text-faint">{t.items.length} items</div>
+                  </div>
+                  <button onClick={() => void spawnTemplate(t.id)} className={BUTTON}>
+                    Add to today
+                  </button>
+                  <button onClick={() => void removeTemplate(t.id)} className={BUTTON}>
+                    Delete
+                  </button>
+                </div>
+              ))}
+            </div>
+          )}
         </section>
 
         {status && (
