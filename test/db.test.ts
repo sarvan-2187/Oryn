@@ -30,7 +30,7 @@ try {
       all.map((s) => s.name),
       ['Academic', 'Research', 'Hackathons', 'Personal', 'Inbox']
     )
-    assert.equal(getDb().pragma('user_version', { simple: true }), 1)
+    assert.equal(getDb().pragma('user_version', { simple: true }), 2)
   })
 
   check('inbox is the system space and is not deletable', () => {
@@ -111,7 +111,7 @@ try {
   check('reopening an existing database does not re-run migrations', () => {
     closeDb()
     const db = getDb()
-    assert.equal(db.pragma('user_version', { simple: true }), 1)
+    assert.equal(db.pragma('user_version', { simple: true }), 2)
     assert.equal(spaces.listSpaces().length, 5)
   })
 
