@@ -10,6 +10,8 @@ import * as links from './db/queries/links'
 import * as templates from './db/queries/templates'
 import * as insights from './db/queries/insights'
 import * as lock from './db/queries/lock'
+import * as attachmentsDb from './db/queries/attachments'
+import { pickAndAttachFile, openAttachment } from './attachments'
 import * as stats from './db/queries/stats'
 import * as planner from './db/queries/planner'
 import { backupNow, exportMarkdown, revealPath } from './backup'
@@ -75,6 +77,20 @@ const handlers = {
   'lock:verify': lock.verifyPin,
   'lock:getIdleMinutes': lock.getIdleMinutes,
   'lock:setIdleMinutes': lock.setIdleMinutes,
+
+  'attachments:list': attachmentsDb.listAttachments,
+  'attachments:createAudio': (ownerId: number, dataBase64: string) =>
+    attachmentsDb.createAttachment({
+      kind: 'audio',
+      ownerType: 'note',
+      ownerId,
+      filename: `voice-${Date.now()}.webm`,
+      dataBase64
+    }),
+  'attachments:addFile': pickAndAttachFile,
+  'attachments:read': attachmentsDb.readAttachmentBase64,
+  'attachments:open': openAttachment,
+  'attachments:delete': attachmentsDb.deleteAttachment,
 
   'deadlines:list': planner.listDeadlines,
   'deadlines:create': planner.createDeadline,

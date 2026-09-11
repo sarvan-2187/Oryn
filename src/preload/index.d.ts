@@ -23,7 +23,8 @@ import type {
   Tag,
   Template,
   ReviewSummary,
-  HabitCorrelation
+  HabitCorrelation,
+  Attachment
 } from '../shared/types'
 
 export interface OrynApi {
@@ -119,6 +120,14 @@ export interface OrynApi {
     verify(pin: string): Promise<boolean>
     getIdleMinutes(): Promise<number>
     setIdleMinutes(n: number): Promise<void>
+  }
+  attachments: {
+    list(ownerType: 'note' | 'task', ownerId: number): Promise<Attachment[]>
+    createAudio(ownerId: number, dataBase64: string): Promise<Attachment>
+    addFile(ownerType: 'note' | 'task', ownerId: number): Promise<Attachment | null>
+    read(id: number): Promise<string | null>
+    open(id: number): Promise<void>
+    delete(id: number): Promise<void>
   }
   deadlines: {
     list(opts?: { spaceId?: number | null; includePast?: boolean }): Promise<Deadline[]>
