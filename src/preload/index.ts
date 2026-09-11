@@ -22,6 +22,9 @@ const api = {
     delete: invoke('notes:delete'),
     search: invoke('notes:search')
   },
+  search: {
+    global: invoke('search:global')
+  },
   tasks: {
     list: invoke('tasks:list'),
     create: invoke('tasks:create'),
