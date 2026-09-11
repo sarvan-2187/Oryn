@@ -9,26 +9,13 @@ phases are independent of each other.
 Order: Search → Tags → Backlinks → Backup → Reminders (tags/backlinks touch
 notes storage that search should index; backup/reminders are independent).
 
-### 1. Global search
+### 1. Global search — done
 
-Extend the Cmd+K command palette (`CommandPalette.tsx`) to search notes, tasks,
-habits, and journal — currently notes-only.
-
-- **Backend:** new `search.ts` query module + `search:global` IPC channel
-  returning `{ notes, tasks, habits, journal }`, ~5 results each.
-  - Notes: reuse existing `searchNotes` (FTS5) as-is.
-  - Tasks: `LIKE` on `title`/`description`, scoped by space (table is small,
-    FTS not worth it).
-  - Habits: `LIKE` on `name`, scoped by space.
-  - Journal: `LIKE` on `content_text`. Not space-scoped — journal has no
-    `space_id` column, so it always searches all entries.
-- **Frontend:** palette renders one `cmdk` group per type (reuse
-  `GROUP_HEADING` style). Selecting a task/habit result sets a new
-  `focusTarget: { view, id } | null` on the zustand store and navigates; the
-  target view reads it on mount, scrolls the item into view, briefly
-  highlights it, then clears it. Journal results just jump to that date.
-- **Reuses:** existing FTS5 pattern, `cmdk` groups, store navigation.
-- **Test:** `test/search.test.ts` following the existing `test/*.test.ts` style.
+Cmd+K now searches notes, tasks, habits, and journal (grouped, via a new
+`search:global` IPC channel), scoped to the active space except journal
+(no `space_id` column). Selecting a task/habit result scrolls to and
+highlights it in its view. See
+`docs/superpowers/plans/2026-09-11-global-search.md`.
 
 ### 2. Tags — done
 
@@ -51,18 +38,15 @@ Turned out to already exist in `src/main/backup.ts`: `backupNow()` snapshots
 the SQLite file (WAL checkpoint first, so nothing recent is lost), and
 `exportMarkdown()` exports notes to Markdown files. Nothing left to build here.
 
-### 5. Reminders
+### 5. Reminders — done
 
-Native OS notification when a task is due or a habit streak is at risk.
+A native OS notification fires once per calendar day (gated via a new
+`settings` key-value module — the original one-liner didn't say what stops
+an hourly check from renotifying every hour, so that gate was added) when
+there are tasks due today or a habit streak (≥3 days) is unchecked. See
+`docs/superpowers/plans/2026-09-11-reminders.md`.
 
-- Electron's built-in `Notification` API — no new dependency.
-- A main-process interval (checked once on launch + hourly, not a
-  always-on scheduler) queries: tasks with `due_date = today` and not done,
-  and habits with no entry yet today where yesterday's streak was ≥ some
-  threshold.
-- **Reuses:** existing task/habit query modules for the "what's due" logic.
-- Skipped: configurable quiet hours, per-task custom reminder times, snooze —
-  ship the blunt "due today" nudge first, refine if it's noisy in practice.
+**Phase 4 complete.**
 
 ## Phase 5
 
