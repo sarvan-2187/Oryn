@@ -34,6 +34,15 @@ export function SettingsView(): React.JSX.Element {
   const [templates, setTemplates] = useState<Template[]>([])
   const [templateTitle, setTemplateTitle] = useState('')
   const [templateItems, setTemplateItems] = useState('')
+  const [pinSet, setPinSet] = useState(false)
+  const [newPin, setNewPin] = useState('')
+  const [confirmPin, setConfirmPin] = useState('')
+  const [idleMinutes, setIdleMinutesState] = useState(10)
+
+  useEffect(() => {
+    void window.oryn.lock.isSet().then(setPinSet)
+    void window.oryn.lock.getIdleMinutes().then(setIdleMinutesState)
+  }, [])
 
   useEffect(() => {
     void window.oryn.data.path().then(setDbFile)
@@ -74,6 +83,33 @@ export function SettingsView(): React.JSX.Element {
     if (target == null) return
     await window.oryn.templates.spawn(id, target)
     setStatus('Added to today.')
+  }
+
+  const savePin = async (): Promise<void> => {
+    if (newPin.length < 4) {
+      setStatus('PIN must be at least 4 characters.')
+      return
+    }
+    if (newPin !== confirmPin) {
+      setStatus("PINs don't match.")
+      return
+    }
+    await window.oryn.lock.setPin(newPin)
+    setNewPin('')
+    setConfirmPin('')
+    setPinSet(true)
+    setStatus('PIN set.')
+  }
+
+  const removePin = async (): Promise<void> => {
+    await window.oryn.lock.clear()
+    setPinSet(false)
+    setStatus('Lock removed.')
+  }
+
+  const saveIdleMinutes = async (n: number): Promise<void> => {
+    setIdleMinutesState(n)
+    await window.oryn.lock.setIdleMinutes(n)
   }
 
   const saveHotkey = async (): Promise<void> => {
@@ -215,6 +251,55 @@ export function SettingsView(): React.JSX.Element {
                 </div>
               ))}
             </div>
+          )}
+        </section>
+
+        <h2 className="mb-2 mt-6 text-[12px] font-medium uppercase tracking-wider text-faint">
+          App lock
+        </h2>
+        <section className="rounded-lg border border-border bg-surface px-4 py-1">
+          {pinSet ? (
+            <>
+              <Row
+                title="PIN lock is on"
+                hint="A UI-level deterrent, not encryption — the database file itself stays plain."
+              >
+                <button onClick={() => void removePin()} className={BUTTON}>
+                  Remove lock
+                </button>
+              </Row>
+              <Row title="Re-lock after" hint="Minutes of no mouse or keyboard input.">
+                <input
+                  type="number"
+                  min={1}
+                  value={idleMinutes}
+                  onChange={(e) => void saveIdleMinutes(Number(e.target.value) || 1)}
+                  className="w-16 rounded-md border border-border bg-bg px-2 py-1.5 text-center text-[14px] outline-none focus:border-accent"
+                />
+              </Row>
+            </>
+          ) : (
+            <Row title="Set a PIN" hint="Locks Oryn on launch and after idle.">
+              <input
+                type="password"
+                inputMode="numeric"
+                value={newPin}
+                onChange={(e) => setNewPin(e.target.value)}
+                placeholder="New PIN"
+                className="w-24 rounded-md border border-border bg-bg px-2 py-1.5 text-[14px] outline-none focus:border-accent"
+              />
+              <input
+                type="password"
+                inputMode="numeric"
+                value={confirmPin}
+                onChange={(e) => setConfirmPin(e.target.value)}
+                placeholder="Confirm"
+                className="w-24 rounded-md border border-border bg-bg px-2 py-1.5 text-[14px] outline-none focus:border-accent"
+              />
+              <button onClick={() => void savePin()} className={BUTTON}>
+                Set PIN
+              </button>
+            </Row>
           )}
         </section>
 
