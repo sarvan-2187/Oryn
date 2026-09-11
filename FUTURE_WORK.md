@@ -54,21 +54,12 @@ Automation and insights, built on top of Phase 4. Mobile/companion access was
 considered and dropped for this phase (real sync/hosting cost not justified
 yet — local desktop app only).
 
-### Automation
+### Automation — done
 
-- **Recurring habit/checklist templates:** a `templates` table
-  (`title`, `items_json`) you can "spawn" into a day as a batch of tasks —
-  distinct from the existing single-task `recur_rule`, which already handles
-  one-task recurrence and stays as-is.
-- **Auto-carry-over of missed tasks:** on app launch, tasks with
-  `due_date < today` and `status != 'done'` get their `due_date` bumped to
-  today (only if they have no `recur_rule` — recurring tasks already spawn
-  fresh copies and shouldn't also carry over). One query, runs where startup
-  migrations already run.
-- **Smart due-date suggestions:** when adding a task, suggest a due date by
-  looking at the median gap between creation and completion for tasks with
-  a similar title (simple `LIKE`-based lookup, no ML/embeddings) in the same
-  space. Weakest of the three — ship last, cut if it doesn't feel useful.
+Checklist templates (spawn a batch of tasks into today from Settings),
+auto-carry-over of missed non-recurring tasks on launch, and a dismissible
+due-date suggestion hint based on past completion gaps for similar titles.
+See `docs/superpowers/plans/2026-09-11-automation.md`.
 
 ### Insights
 
