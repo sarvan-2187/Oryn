@@ -3,6 +3,7 @@ import { useStore } from './store'
 import { TopBar } from './components/TopBar'
 import { Sidebar } from './components/Sidebar'
 import { CommandPalette } from './components/CommandPalette'
+import { ConfirmDialog } from './components/ConfirmDialog'
 import { DashboardView } from './views/Dashboard'
 import { NotesView } from './views/Notes'
 import { TasksView } from './views/Tasks'
@@ -70,6 +71,7 @@ export default function App(): React.JSX.Element {
         </main>
       </div>
       {paletteOpen && <CommandPalette />}
+      <ConfirmDialog />
     </div>
   )
 }

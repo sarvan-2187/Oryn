@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useState } from 'react'
 import { useStore } from '../store'
 import { HabitCheckin } from '../components/HabitCheckin'
+import { confirmDialog } from '../components/ConfirmDialog'
 import { SimpleSelect } from '../components/ui/simple-select'
 import { PencilIcon, Trash2Icon } from 'lucide-react'
 import { addDays, today } from '../../../shared/dates'
@@ -183,7 +184,7 @@ export function HabitsView(): React.JSX.Element {
   }
 
   const remove = async (id: number, label: string): Promise<void> => {
-    if (!confirm(`Delete "${label}" and all of its history?`)) return
+    if (!(await confirmDialog(`Delete "${label}" and all of its history?`))) return
     await window.oryn.habits.delete(id)
     await refresh()
   }

@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useState } from 'react'
 import { useStore } from '../store'
 import { Editor } from '../components/Editor'
+import { confirmDialog } from '../components/ConfirmDialog'
 import { SimpleSelect } from '../components/ui/simple-select'
 import { ArchiveIcon, ArchiveRestoreIcon, PlusIcon, StarIcon, Trash2Icon } from 'lucide-react'
 import { firstLine } from '../lib/blocks'
@@ -92,7 +93,10 @@ export function NotesView({ archived }: { archived: boolean }): React.JSX.Elemen
   /** Permanent, so it is only offered from the archive and asks first. */
   const destroy = async (): Promise<void> => {
     if (!note) return
-    if (!confirm(`Permanently delete "${note.title || 'Untitled'}"? This cannot be undone.`)) return
+    const ok = await confirmDialog(
+      `Permanently delete "${note.title || 'Untitled'}"? This cannot be undone.`
+    )
+    if (!ok) return
     await window.oryn.notes.delete(note.id)
     setNote(null)
     await refresh()

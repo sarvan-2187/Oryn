@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { useStore } from '../store'
+import { confirmDialog } from './ConfirmDialog'
 import { SimpleSelect } from './ui/simple-select'
 import { CheckIcon, PencilIcon, RepeatIcon, Trash2Icon } from 'lucide-react'
 import { daysBetween, today } from '../../../shared/dates'
@@ -163,7 +164,7 @@ export function TaskRow({ task, onChanged }: Props): React.JSX.Element {
   }
 
   const remove = async (id: number, label: string): Promise<void> => {
-    if (!confirm(`Delete "${label}"?`)) return
+    if (!(await confirmDialog(`Delete "${label}"?`))) return
     await window.oryn.tasks.delete(id)
     onChanged()
   }
