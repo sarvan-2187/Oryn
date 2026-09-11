@@ -3,7 +3,7 @@ import { useStore } from '../store'
 import { TaskRow, PRIORITY_OPTIONS, RECUR_OPTIONS, NO_RECUR } from '../components/TaskRow'
 import { SimpleSelect } from '../components/ui/simple-select'
 import { today } from '../../../shared/dates'
-import type { TaskTree, Priority, RecurRule } from '../../../shared/types'
+import type { TaskTree, Priority, RecurRule, Tag } from '../../../shared/types'
 
 type Scope = 'today' | 'upcoming' | 'someday' | 'all'
 
@@ -19,15 +19,21 @@ export function TasksView(): React.JSX.Element {
   const [scope, setScope] = useState<Scope>('today')
   const [tasks, setTasks] = useState<TaskTree[]>([])
   const [highlightId, setHighlightId] = useState<number | null>(null)
+  const [tags, setTags] = useState<Tag[]>([])
+  const [tagId, setTagId] = useState<number | null>(null)
 
   const [title, setTitle] = useState('')
   const [due, setDue] = useState(today())
   const [priority, setPriority] = useState<Priority>('med')
   const [recur, setRecur] = useState<RecurRule | typeof NO_RECUR>(NO_RECUR)
 
+  useEffect(() => {
+    void window.oryn.tags.list().then(setTags)
+  }, [])
+
   const refresh = useCallback(async () => {
-    setTasks(await window.oryn.tasks.list({ spaceId: activeSpaceId, scope }))
-  }, [activeSpaceId, scope])
+    setTasks(await window.oryn.tasks.list({ spaceId: activeSpaceId, scope, tagId }))
+  }, [activeSpaceId, scope, tagId])
 
   useEffect(() => {
     void refresh()
@@ -86,6 +92,24 @@ export function TasksView(): React.JSX.Element {
           </button>
         ))}
       </div>
+
+      {tags.length > 0 && (
+        <div className="flex flex-wrap gap-1 border-b border-border px-4 py-2">
+          {tags.map((t) => (
+            <button
+              key={t.id}
+              onClick={() => setTagId(tagId === t.id ? null : t.id)}
+              className={`rounded-full border px-2 py-0.5 text-[13px] transition-colors ${
+                tagId === t.id
+                  ? 'border-accent bg-accent/15 text-accent'
+                  : 'border-border text-muted hover:border-accent hover:text-text'
+              }`}
+            >
+              #{t.name}
+            </button>
+          ))}
+        </div>
+      )}
 
       <div className="mx-auto w-full max-w-3xl px-4 py-4">
         <div className="mb-4 rounded-lg border border-border bg-surface p-2">
