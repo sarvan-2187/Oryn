@@ -87,25 +87,21 @@ by design. See `docs/superpowers/plans/2026-09-11-app-lock.md`.
 
 ### Attachments — done
 
-Files on tasks and voice notes on notes share one `attachments` table +
-`userData/attachments/`. Images skip that table entirely — the original
-custom `oryn-file://` protocol idea was dropped in favor of BlockNote's
-`uploadFile` just returning a `data:` URL, no protocol/IPC needed at all.
-See `docs/superpowers/plans/2026-09-11-attachments.md`.
+Files on tasks use one `attachments` table + `userData/attachments/`. Images
+skip that table entirely — the original custom `oryn-file://` protocol idea
+was dropped in favor of BlockNote's `uploadFile` just returning a `data:`
+URL, no protocol/IPC needed at all. Voice notes shipped on the same table
+but were later removed at the user's request. See
+`docs/superpowers/plans/2026-09-11-attachments.md`.
 
-### Multi-window / focus modes
+### Multi-window / focus modes — done
 
-- **Pop-out note window:** reuses the exact `capture.ts` pattern — a second
-  `BrowserWindow` loading the renderer with a `?note=<id>` query param instead
-  of the main shell. No new windowing code, just a second entry route.
-- **Distraction-free writing mode:** in-app only, no new window — a store
-  flag that hides the sidebar/topbar and expands `Editor` to fill the screen.
-  Toggled from the note view, Escape exits.
-- **Always-on-top mini Pomodoro:** small `BrowserWindow` with
-  `alwaysOnTop: true` and no frame, showing just the existing `Pomodoro`
-  component's countdown; the two windows (main + mini) share timer state via
-  the same IPC broadcast pattern `capture.ts` already uses
-  (`captures:changed` → here `pomodoro:tick`).
-- Skipped: arbitrary multi-note tiling/workspaces — three purpose-built
-  windows cover the actual asks; a general window-manager is speculative
-  until one of these three isn't enough on its own.
+Pop-out note window (`?note=<id>` into the main renderer bundle), a
+distraction-free focus mode (store flag, Escape exits), and an always-on-top
+mini Pomodoro. The Pomodoro timer itself moved into the main process as the
+single source of truth — the original note assumed the existing
+`Pomodoro.tsx` had shareable state to broadcast; it didn't (it was a local
+per-component timer), so two independent instances would have drifted apart.
+See `docs/superpowers/plans/2026-09-11-multi-window.md`.
+
+**Phase 6 complete.**
