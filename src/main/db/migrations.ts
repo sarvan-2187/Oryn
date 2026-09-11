@@ -164,6 +164,15 @@ export const migrations: string[] = [
     PRIMARY KEY (task_id, tag_id)
   );
   CREATE INDEX idx_task_tags_tag ON task_tags(tag_id);
+  `,
+  // 003 - note links
+  `
+  CREATE TABLE note_links (
+    source_id INTEGER NOT NULL REFERENCES notes(id) ON DELETE CASCADE,
+    target_id INTEGER NOT NULL REFERENCES notes(id) ON DELETE CASCADE,
+    PRIMARY KEY (source_id, target_id)
+  );
+  CREATE INDEX idx_note_links_target ON note_links(target_id);
   `
 ]
 
