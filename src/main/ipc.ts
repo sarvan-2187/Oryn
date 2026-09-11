@@ -6,6 +6,7 @@ import * as habits from './db/queries/habits'
 import * as journal from './db/queries/journal'
 import * as search from './db/queries/search'
 import * as tags from './db/queries/tags'
+import * as links from './db/queries/links'
 import * as stats from './db/queries/stats'
 import * as planner from './db/queries/planner'
 import { backupNow, exportMarkdown, revealPath } from './backup'
@@ -28,6 +29,7 @@ const handlers = {
   'notes:archive': notes.archiveNote,
   'notes:delete': notes.deleteNote,
   'notes:search': notes.searchNotes,
+  'notes:backlinks': links.listBacklinks,
 
   'search:global': search.globalSearch,
 

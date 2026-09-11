@@ -42,6 +42,7 @@ export interface OrynApi {
     archive(id: number, archived?: boolean): Promise<void>
     delete(id: number): Promise<void>
     search(query: string, spaceId?: number | null): Promise<NoteSummary[]>
+    backlinks(noteId: number): Promise<NoteSummary[]>
   }
   search: {
     global(query: string, spaceId?: number | null): Promise<GlobalSearchResult>

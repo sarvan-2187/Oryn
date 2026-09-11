@@ -20,7 +20,8 @@ const api = {
     update: invoke('notes:update'),
     archive: invoke('notes:archive'),
     delete: invoke('notes:delete'),
-    search: invoke('notes:search')
+    search: invoke('notes:search'),
+    backlinks: invoke('notes:backlinks')
   },
   search: {
     global: invoke('search:global')
