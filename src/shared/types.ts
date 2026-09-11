@@ -180,3 +180,8 @@ export interface GlobalSearchResult {
   habits: HabitSearchResult[]
   journal: JournalSearchResult[]
 }
+
+export interface Tag {
+  id: number
+  name: string
+}
