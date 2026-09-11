@@ -8,6 +8,7 @@ export type View =
   | 'board'
   | 'habits'
   | 'activity'
+  | 'review'
   | 'planner'
   | 'inbox'
   | 'settings'

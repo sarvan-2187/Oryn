@@ -5,6 +5,7 @@ import { PlusIcon } from 'lucide-react'
 const SECONDARY: { id: View; label: string }[] = [
   { id: 'inbox', label: 'Inbox' },
   { id: 'planner', label: 'Planner' },
+  { id: 'review', label: 'Review' },
   { id: 'archive', label: 'Archive' },
   { id: 'settings', label: 'Settings' }
 ]
