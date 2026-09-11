@@ -79,16 +79,7 @@ const handlers = {
   'lock:setIdleMinutes': lock.setIdleMinutes,
 
   'attachments:list': attachmentsDb.listAttachments,
-  'attachments:createAudio': (ownerId: number, dataBase64: string) =>
-    attachmentsDb.createAttachment({
-      kind: 'audio',
-      ownerType: 'note',
-      ownerId,
-      filename: `voice-${Date.now()}.webm`,
-      dataBase64
-    }),
   'attachments:addFile': pickAndAttachFile,
-  'attachments:read': attachmentsDb.readAttachmentBase64,
   'attachments:open': openAttachment,
   'attachments:delete': attachmentsDb.deleteAttachment,
 

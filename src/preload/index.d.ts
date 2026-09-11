@@ -123,9 +123,7 @@ export interface OrynApi {
   }
   attachments: {
     list(ownerType: 'note' | 'task', ownerId: number): Promise<Attachment[]>
-    createAudio(ownerId: number, dataBase64: string): Promise<Attachment>
     addFile(ownerType: 'note' | 'task', ownerId: number): Promise<Attachment | null>
-    read(id: number): Promise<string | null>
     open(id: number): Promise<void>
     delete(id: number): Promise<void>
   }

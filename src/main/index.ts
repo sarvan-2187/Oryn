@@ -1,4 +1,4 @@
-import { app, shell, session, BrowserWindow, ipcMain, Menu, nativeImage, Tray } from 'electron'
+import { app, shell, BrowserWindow, ipcMain, Menu, nativeImage, Tray } from 'electron'
 import { join } from 'node:path'
 import { getDb, closeDb } from './db/connection'
 import { carryOverMissedTasks } from './db/queries/tasks'
@@ -121,13 +121,6 @@ if (needsLock && !app.requestSingleInstanceLock()) {
     // The taskbar *icon* still comes from the running .exe, so in dev it is
     // Electron's own; the packaged Oryn.exe embeds resources/icon.png.
     if (process.platform === 'win32') app.setAppUserModelId('com.oryn.app')
-
-    // Electron denies permission requests by default; voice notes need the
-    // mic, so grant it explicitly (the OS's own privacy prompt still gates
-    // this on first use).
-    session.defaultSession.setPermissionRequestHandler((_wc, permission, callback) => {
-      callback(permission === 'media')
-    })
 
     getDb() // opens the file and runs migrations before any IPC can arrive
     carryOverMissedTasks()

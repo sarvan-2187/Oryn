@@ -76,9 +76,7 @@ const api = {
   },
   attachments: {
     list: invoke('attachments:list'),
-    createAudio: invoke('attachments:createAudio'),
     addFile: invoke('attachments:addFile'),
-    read: invoke('attachments:read'),
     open: invoke('attachments:open'),
     delete: invoke('attachments:delete')
   },

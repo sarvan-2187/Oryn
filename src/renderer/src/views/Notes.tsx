@@ -1,7 +1,6 @@
 import { useCallback, useEffect, useState } from 'react'
 import { useStore } from '../store'
 import { Editor } from '../components/Editor'
-import { VoiceNotes } from '../components/VoiceNotes'
 import { confirmDialog } from '../components/ConfirmDialog'
 import { SimpleSelect } from '../components/ui/simple-select'
 import { ArchiveIcon, ArchiveRestoreIcon, PlusIcon, StarIcon, Trash2Icon } from 'lucide-react'
@@ -268,9 +267,6 @@ export function NotesView({ archived }: { archived: boolean }): React.JSX.Elemen
                   </div>
                 </div>
               )}
-              <div className="mx-auto w-full max-w-3xl px-[54px]">
-                <VoiceNotes noteId={note.id} />
-              </div>
             </div>
           </>
         ) : (
