@@ -14,7 +14,7 @@
     "rebuild": "electron-builder install-app-deps",
     "dist": "npm run build && electron-builder --win",
     "postinstall": "electron-builder install-app-deps",
-    "test": "esbuild test/db.test.ts test/logic.test.ts test/phase3.test.ts test/search.test.ts test/tags.test.ts test/links.test.ts test/reminders.test.ts test/automation.test.ts test/insights.test.ts test/lock.test.ts --bundle --platform=node --format=esm --packages=external --out-extension:.js=.mjs --outdir=out/test && node out/test/db.test.mjs && node out/test/logic.test.mjs && node out/test/phase3.test.mjs && node out/test/search.test.mjs && node out/test/tags.test.mjs && node out/test/links.test.mjs && node out/test/reminders.test.mjs && node out/test/automation.test.mjs && node out/test/insights.test.mjs && node out/test/lock.test.mjs"
+    "test": "esbuild test/db.test.ts test/logic.test.ts test/phase3.test.ts test/search.test.ts test/tags.test.ts test/links.test.ts test/reminders.test.ts test/automation.test.ts test/insights.test.ts test/lock.test.ts test/attachments.test.ts --bundle --platform=node --format=esm --packages=external --out-extension:.js=.mjs --outdir=out/test && node out/test/db.test.mjs && node out/test/logic.test.mjs && node out/test/phase3.test.mjs && node out/test/search.test.mjs && node out/test/tags.test.mjs && node out/test/links.test.mjs && node out/test/reminders.test.mjs && node out/test/automation.test.mjs && node out/test/insights.test.mjs && node out/test/lock.test.mjs && node out/test/attachments.test.mjs"
   },
   "dependencies": {
     "better-sqlite3": "^13.0.3"
