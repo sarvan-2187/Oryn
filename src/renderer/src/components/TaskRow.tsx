@@ -147,9 +147,10 @@ function TaskEditor({ task, onDone }: { task: Task; onDone: () => void }): React
 interface Props {
   task: TaskTree
   onChanged: () => void
+  highlighted?: boolean
 }
 
-export function TaskRow({ task, onChanged }: Props): React.JSX.Element {
+export function TaskRow({ task, onChanged, highlighted }: Props): React.JSX.Element {
   const [expanded, setExpanded] = useState(false)
   const [editing, setEditing] = useState(false)
   const [editingChild, setEditingChild] = useState<number | null>(null)
@@ -177,9 +178,13 @@ export function TaskRow({ task, onChanged }: Props): React.JSX.Element {
     onChanged()
   }
 
+  const rowClass = `border-b border-border/60 last:border-0 transition-shadow ${
+    highlighted ? 'ring-2 ring-inset ring-accent' : ''
+  }`
+
   if (editing) {
     return (
-      <div className="border-b border-border/60 last:border-0">
+      <div id={`task-${task.id}`} className={rowClass}>
         <TaskEditor
           task={task}
           onDone={() => {
@@ -192,7 +197,7 @@ export function TaskRow({ task, onChanged }: Props): React.JSX.Element {
   }
 
   return (
-    <div className="border-b border-border/60 last:border-0">
+    <div id={`task-${task.id}`} className={rowClass}>
       <div className="group flex items-start gap-2.5 px-3 py-2">
         <Checkbox done={done} onClick={() => void toggle(task.id)} />
 

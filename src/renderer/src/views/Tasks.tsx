@@ -15,9 +15,10 @@ const SCOPES: { id: Scope; label: string }[] = [
 ]
 
 export function TasksView(): React.JSX.Element {
-  const { activeSpaceId, spaces } = useStore()
+  const { activeSpaceId, spaces, focusTaskId, setFocusTaskId } = useStore()
   const [scope, setScope] = useState<Scope>('today')
   const [tasks, setTasks] = useState<TaskTree[]>([])
+  const [highlightId, setHighlightId] = useState<number | null>(null)
 
   const [title, setTitle] = useState('')
   const [due, setDue] = useState(today())
@@ -31,6 +32,24 @@ export function TasksView(): React.JSX.Element {
   useEffect(() => {
     void refresh()
   }, [refresh])
+
+  // A search result can point at a task outside the current scope (e.g. an
+  // "upcoming" task while viewing "Today"), so force the scope wide enough
+  // to guarantee it's actually in the list before trying to scroll to it.
+  useEffect(() => {
+    if (focusTaskId != null) setScope('all')
+  }, [focusTaskId])
+
+  useEffect(() => {
+    if (focusTaskId == null) return
+    const el = document.getElementById(`task-${focusTaskId}`)
+    if (!el) return
+    el.scrollIntoView({ block: 'center', behavior: 'smooth' })
+    setHighlightId(focusTaskId)
+    setFocusTaskId(null)
+    const t = setTimeout(() => setHighlightId(null), 1500)
+    return () => clearTimeout(t)
+  }, [tasks, focusTaskId, setFocusTaskId])
 
   const add = async (): Promise<void> => {
     const text = title.trim()
@@ -113,7 +132,12 @@ export function TasksView(): React.JSX.Element {
           <>
             <div className="overflow-hidden rounded-lg border border-border bg-surface">
               {open.map((t) => (
-                <TaskRow key={t.id} task={t} onChanged={() => void refresh()} />
+                <TaskRow
+                  key={t.id}
+                  task={t}
+                  onChanged={() => void refresh()}
+                  highlighted={t.id === highlightId}
+                />
               ))}
               {open.length === 0 && (
                 <p className="px-3 py-6 text-center text-[16px] text-faint">All clear.</p>
@@ -127,7 +151,12 @@ export function TasksView(): React.JSX.Element {
                 </div>
                 <div className="overflow-hidden rounded-lg border border-border bg-surface opacity-70">
                   {done.map((t) => (
-                    <TaskRow key={t.id} task={t} onChanged={() => void refresh()} />
+                    <TaskRow
+                      key={t.id}
+                      task={t}
+                      onChanged={() => void refresh()}
+                      highlighted={t.id === highlightId}
+                    />
                   ))}
                 </div>
               </div>
