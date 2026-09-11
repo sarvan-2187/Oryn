@@ -61,17 +61,11 @@ Shared `#tag` system across notes and tasks, filterable app-wide.
   `note_links WHERE target_id = ?`.
 - **Reuses:** note search for the autocomplete, existing note IPC patterns.
 
-### 4. Backup / export
+### 4. Backup / export — already done
 
-"Backup now" button in Settings.
-
-- Copies the live SQLite file (via `VACUUM INTO` for a consistent snapshot,
-  not a raw file copy) plus a JSON export of all tables to a folder picked
-  via Electron's native `dialog.showSaveDialog` — no custom file picker UI.
-- **Reuses:** `settings` key-value table to remember the last chosen folder.
-- Skipped: cloud sync, scheduled/automatic backups, incremental backups — this
-  is a manual local safety net; automatic scheduling can be added later if
-  manual backup proves to not happen often enough in practice.
+Turned out to already exist in `src/main/backup.ts`: `backupNow()` snapshots
+the SQLite file (WAL checkpoint first, so nothing recent is lost), and
+`exportMarkdown()` exports notes to Markdown files. Nothing left to build here.
 
 ### 5. Reminders
 
@@ -126,3 +120,65 @@ duplicating it.
   data scale). Weakest/most speculative of the insights items — ship after
   the review screen and trends prove useful, cut if correlations turn out
   noisy with typical entry counts.
+
+## Phase 6
+
+App lock, attachments, and multi-window/focus modes. No build-order
+dependency between the three; app lock is the smallest, do it first.
+
+### App lock
+
+PIN/passcode gate on launch and after idle. Not full at-rest encryption — the
+SQLite file stays plain, this is a UI-level lock so a casual look at the app
+doesn't expose the journal.
+
+- **Storage:** PIN hash (not plaintext) in the existing `settings`
+  key-value table — no new table needed.
+- **Gate:** a lock screen component rendered before the shell mounts if a PIN
+  is set; unlocks the render, doesn't protect the file on disk.
+- **Idle re-lock:** reuse the existing window-focus/activity events already
+  wired in `index.ts` for tray/window handling; re-show the lock screen after
+  N idle minutes (configurable in Settings, default e.g. 10).
+- Skipped: full DB encryption (SQLCipher) — that's a real driver swap
+  (`better-sqlite3` → a SQLCipher-compatible build) for a desktop app that's
+  already local-only; revisit only if the threat model changes (e.g. cloud
+  sync lands and the file leaves the machine).
+
+### Attachments
+
+Images in notes, files on tasks, voice notes — same underlying storage.
+
+- **Storage:** one `attachments` table (`id`, `kind`, `owner_type`,
+  `owner_id`, `filename`, `created_at`) plus files on disk under
+  `userData/attachments/<id>-<filename>` — mirrors how `backup.ts` already
+  uses `app.getPath('userData')`, no new storage concept.
+- **Images in notes:** BlockNote's default schema already has an image block;
+  it just needs an `uploadFile` handler wired into `useCreateBlockNote` that
+  saves the dropped/pasted file and returns a local URL (a custom
+  `oryn-file://` protocol registered in the main process, since `file://`
+  paths get finicky with Electron's security settings).
+- **Files on tasks:** small attachment-chip list under a task's description,
+  same table filtered by `owner_type = 'task'`. Add/remove via native
+  `dialog.showOpenDialog`.
+- **Voice notes:** record via the renderer's `MediaRecorder` (native browser
+  API, no dependency), save the resulting blob through the same attachments
+  IPC as files, `kind = 'audio'`. Playback is a plain `<audio>` element.
+- Skipped: attachment size limits/compression, cloud storage — everything
+  lives in `userData`, same trust boundary as the SQLite file already sits in.
+
+### Multi-window / focus modes
+
+- **Pop-out note window:** reuses the exact `capture.ts` pattern — a second
+  `BrowserWindow` loading the renderer with a `?note=<id>` query param instead
+  of the main shell. No new windowing code, just a second entry route.
+- **Distraction-free writing mode:** in-app only, no new window — a store
+  flag that hides the sidebar/topbar and expands `Editor` to fill the screen.
+  Toggled from the note view, Escape exits.
+- **Always-on-top mini Pomodoro:** small `BrowserWindow` with
+  `alwaysOnTop: true` and no frame, showing just the existing `Pomodoro`
+  component's countdown; the two windows (main + mini) share timer state via
+  the same IPC broadcast pattern `capture.ts` already uses
+  (`captures:changed` → here `pomodoro:tick`).
+- Skipped: arbitrary multi-note tiling/workspaces — three purpose-built
+  windows cover the actual asks; a general window-manager is speculative
+  until one of these three isn't enough on its own.
