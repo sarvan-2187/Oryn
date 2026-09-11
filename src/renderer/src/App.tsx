@@ -10,6 +10,7 @@ import { TasksView } from './views/Tasks'
 import { BoardView } from './views/Board'
 import { HabitsView } from './views/Habits'
 import { ActivityView } from './views/Activity'
+import { ReviewView } from './views/Review'
 import { PlannerView } from './views/Planner'
 import { InboxView } from './views/Inbox'
 import { SettingsView } from './views/Settings'
@@ -65,6 +66,7 @@ export default function App(): React.JSX.Element {
           {activeView === 'board' && <BoardView key={key} />}
           {activeView === 'habits' && <HabitsView key={key} />}
           {activeView === 'activity' && <ActivityView key={key} />}
+          {activeView === 'review' && <ReviewView key={key} />}
           {activeView === 'planner' && <PlannerView key={key} />}
           {activeView === 'inbox' && <InboxView key={key} />}
           {activeView === 'settings' && <SettingsView key={key} />}
