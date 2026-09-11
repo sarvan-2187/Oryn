@@ -1,5 +1,5 @@
 import { getDb } from '../connection'
-import { nextOccurrence, today } from '../../../shared/dates'
+import { addDays, nextOccurrence, today } from '../../../shared/dates'
 import { syncTaskTags } from './tags'
 import type { Task, TaskTree, TaskPatch } from '../../../shared/types'
 
@@ -222,4 +222,28 @@ export function carryOverMissedTasks(date?: string): number {
     )
     .run(day, day)
   return changes
+}
+
+/**
+ * Suggests a due date for a new task by looking at the median day-gap
+ * between creation and completion for past done tasks with a similar title
+ * in the same space. Returns null with no history to go on — this is a
+ * hint, never a forced value.
+ */
+export function suggestDueDate(spaceId: number, title: string): string | null {
+  const text = title.trim()
+  if (!text) return null
+  const term = `%${text.replace(/[%_\\]/g, (c) => `\\${c}`)}%`
+  const rows = getDb()
+    .prepare(
+      `SELECT
+         julianday(date(completed_at, 'localtime')) - julianday(date(created_at, 'localtime')) AS gap
+       FROM tasks
+       WHERE space_id = ? AND status = 'done' AND title LIKE ? ESCAPE '\\'
+       ORDER BY gap`
+    )
+    .all(spaceId, term) as { gap: number }[]
+  if (rows.length === 0) return null
+  const medianGap = rows[Math.floor(rows.length / 2)].gap
+  return addDays(today(), Math.max(0, Math.round(medianGap)))
 }
