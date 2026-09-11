@@ -8,6 +8,7 @@ import * as search from './db/queries/search'
 import * as tags from './db/queries/tags'
 import * as links from './db/queries/links'
 import * as templates from './db/queries/templates'
+import * as insights from './db/queries/insights'
 import * as stats from './db/queries/stats'
 import * as planner from './db/queries/planner'
 import { backupNow, exportMarkdown, revealPath } from './backup'
@@ -63,6 +64,9 @@ const handlers = {
   'journal:save': journal.saveJournal,
 
   'stats:activity': stats.activity,
+
+  'insights:review': insights.reviewSummary,
+  'insights:correlations': insights.habitCorrelations,
 
   'deadlines:list': planner.listDeadlines,
   'deadlines:create': planner.createDeadline,

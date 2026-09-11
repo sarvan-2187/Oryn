@@ -62,6 +62,10 @@ const api = {
   stats: {
     activity: invoke('stats:activity')
   },
+  insights: {
+    review: invoke('insights:review'),
+    correlations: invoke('insights:correlations')
+  },
   deadlines: {
     list: invoke('deadlines:list'),
     create: invoke('deadlines:create'),

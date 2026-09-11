@@ -21,7 +21,9 @@ import type {
   Capture,
   GlobalSearchResult,
   Tag,
-  Template
+  Template,
+  ReviewSummary,
+  HabitCorrelation
 } from '../shared/types'
 
 export interface OrynApi {
@@ -105,6 +107,10 @@ export interface OrynApi {
   }
   stats: {
     activity(metric: ActivityMetric, opts?: { days?: number; to?: string }): Promise<ActivityResult>
+  }
+  insights: {
+    review(from: string, to: string, spaceId?: number | null): Promise<ReviewSummary>
+    correlations(from: string, to: string, spaceId?: number | null): Promise<HabitCorrelation[]>
   }
   deadlines: {
     list(opts?: { spaceId?: number | null; includePast?: boolean }): Promise<Deadline[]>
