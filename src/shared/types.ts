@@ -192,3 +192,21 @@ export interface Template {
   items: string[]
   created_at: string
 }
+
+export interface ReviewSummary {
+  from: string
+  to: string
+  tasksCreated: number
+  tasksCompleted: number
+  /** 0-100. 0 when there are no active habits in range, not a divide-by-zero crash. */
+  habitCompletionPct: number
+  journalEntries: number
+  busiestSpace: { id: number; name: string } | null
+}
+
+export interface HabitCorrelation {
+  habitA: { id: number; name: string }
+  habitB: { id: number; name: string }
+  /** Pearson correlation of the two habits' daily done/not-done sequences, -1 to 1. */
+  correlation: number
+}
