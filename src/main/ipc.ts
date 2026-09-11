@@ -9,6 +9,7 @@ import * as tags from './db/queries/tags'
 import * as links from './db/queries/links'
 import * as templates from './db/queries/templates'
 import * as insights from './db/queries/insights'
+import * as lock from './db/queries/lock'
 import * as stats from './db/queries/stats'
 import * as planner from './db/queries/planner'
 import { backupNow, exportMarkdown, revealPath } from './backup'
@@ -67,6 +68,13 @@ const handlers = {
 
   'insights:review': insights.reviewSummary,
   'insights:correlations': insights.habitCorrelations,
+
+  'lock:isSet': lock.isPinSet,
+  'lock:setPin': lock.setPin,
+  'lock:clear': lock.clearPin,
+  'lock:verify': lock.verifyPin,
+  'lock:getIdleMinutes': lock.getIdleMinutes,
+  'lock:setIdleMinutes': lock.setIdleMinutes,
 
   'deadlines:list': planner.listDeadlines,
   'deadlines:create': planner.createDeadline,

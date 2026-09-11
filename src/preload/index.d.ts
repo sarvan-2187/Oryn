@@ -112,6 +112,14 @@ export interface OrynApi {
     review(from: string, to: string, spaceId?: number | null): Promise<ReviewSummary>
     correlations(from: string, to: string, spaceId?: number | null): Promise<HabitCorrelation[]>
   }
+  lock: {
+    isSet(): Promise<boolean>
+    setPin(pin: string): Promise<void>
+    clear(): Promise<void>
+    verify(pin: string): Promise<boolean>
+    getIdleMinutes(): Promise<number>
+    setIdleMinutes(n: number): Promise<void>
+  }
   deadlines: {
     list(opts?: { spaceId?: number | null; includePast?: boolean }): Promise<Deadline[]>
     create(input: {

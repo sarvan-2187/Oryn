@@ -66,6 +66,14 @@ const api = {
     review: invoke('insights:review'),
     correlations: invoke('insights:correlations')
   },
+  lock: {
+    isSet: invoke('lock:isSet'),
+    setPin: invoke('lock:setPin'),
+    clear: invoke('lock:clear'),
+    verify: invoke('lock:verify'),
+    getIdleMinutes: invoke('lock:getIdleMinutes'),
+    setIdleMinutes: invoke('lock:setIdleMinutes')
+  },
   deadlines: {
     list: invoke('deadlines:list'),
     create: invoke('deadlines:create'),
