@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
 import { useStore } from '../store'
+import { PinInput } from '../components/PinInput'
 import type { Template } from '../../../shared/types'
 
 function Row({
@@ -86,8 +87,8 @@ export function SettingsView(): React.JSX.Element {
   }
 
   const savePin = async (): Promise<void> => {
-    if (newPin.length < 4) {
-      setStatus('PIN must be at least 4 characters.')
+    if (newPin.length !== 4) {
+      setStatus('PIN must be 4 digits.')
       return
     }
     if (newPin !== confirmPin) {
@@ -279,27 +280,21 @@ export function SettingsView(): React.JSX.Element {
               </Row>
             </>
           ) : (
-            <Row title="Set a PIN" hint="Locks Oryn on launch and after idle.">
-              <input
-                type="password"
-                inputMode="numeric"
-                value={newPin}
-                onChange={(e) => setNewPin(e.target.value)}
-                placeholder="New PIN"
-                className="w-24 rounded-md border border-border bg-bg px-2 py-1.5 text-[14px] outline-none focus:border-accent"
-              />
-              <input
-                type="password"
-                inputMode="numeric"
+            <div className="py-3">
+              <div className="mb-3 text-[15px]">Set a PIN</div>
+              <div className="mb-0.5 text-center text-[12px] uppercase tracking-wider text-faint">
+                New PIN
+              </div>
+              <PinInput value={newPin} onChange={setNewPin} />
+              <div className="mb-0.5 mt-3 text-center text-[12px] uppercase tracking-wider text-faint">
+                Confirm
+              </div>
+              <PinInput
                 value={confirmPin}
-                onChange={(e) => setConfirmPin(e.target.value)}
-                placeholder="Confirm"
-                className="w-24 rounded-md border border-border bg-bg px-2 py-1.5 text-[14px] outline-none focus:border-accent"
+                onChange={setConfirmPin}
+                onComplete={() => void savePin()}
               />
-              <button onClick={() => void savePin()} className={BUTTON}>
-                Set PIN
-              </button>
-            </Row>
+            </div>
           )}
         </section>
 
