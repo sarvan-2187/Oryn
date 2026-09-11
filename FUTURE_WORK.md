@@ -30,22 +30,12 @@ habits, and journal — currently notes-only.
 - **Reuses:** existing FTS5 pattern, `cmdk` groups, store navigation.
 - **Test:** `test/search.test.ts` following the existing `test/*.test.ts` style.
 
-### 2. Tags
+### 2. Tags — done
 
-Shared `#tag` system across notes and tasks, filterable app-wide.
-
-- **Schema:** `tags (id, name UNIQUE)` + join tables `note_tags` and
-  `task_tags` (id pairs, `ON DELETE CASCADE`) — standard many-to-many, no new
-  pattern needed.
-- **Capture:** parse `#tag` tokens out of note titles/task titles on
-  save (regex, no editor plugin) and sync the join table to match.
-- **Browse:** a tag shows up as a filter chip alongside the existing space
-  filter in Notes/Tasks views; clicking filters the list via a `tagId` query
-  param on the existing list queries.
-- **Reuses:** existing space-filter UI pattern, existing list query shape
-  (just add an optional `tagId` param like the existing `spaceId` one).
-- Skipped: nested/hierarchical tags, tag colors, autocomplete UI — add if flat
-  tags turn out to not be enough.
+Shared `#tag` system across notes and tasks. Tags are parsed from title +
+body/description (not title alone — see the plan doc for why), synced via
+`tags.ts`, and filterable through chip rows in Notes and Tasks. See
+`docs/superpowers/plans/2026-09-11-tags.md`.
 
 ### 3. Backlinks
 
