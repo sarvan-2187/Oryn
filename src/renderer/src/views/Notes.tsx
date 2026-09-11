@@ -39,12 +39,16 @@ export function NotesView({ archived }: { archived: boolean }): React.JSX.Elemen
     void refresh()
   }, [refresh])
 
+  const [backlinks, setBacklinks] = useState<NoteSummary[]>([])
+
   useEffect(() => {
     if (activeNoteId == null) {
       setNoteData(null)
+      setBacklinks([])
       return
     }
     void window.oryn.notes.get(activeNoteId).then((n) => setNoteData(n ?? null))
+    void window.oryn.notes.backlinks(activeNoteId).then(setBacklinks)
   }, [activeNoteId])
 
   const create = async (): Promise<void> => {
@@ -245,6 +249,24 @@ export function NotesView({ archived }: { archived: boolean }): React.JSX.Elemen
                 theme={theme}
                 onSave={save}
               />
+              {backlinks.length > 0 && (
+                <div className="mx-auto mt-6 w-full max-w-3xl border-t border-border px-[54px] pt-4">
+                  <div className="mb-2 text-[13px] uppercase tracking-wider text-faint">
+                    Linked mentions
+                  </div>
+                  <div className="flex flex-col gap-1">
+                    {backlinks.map((n) => (
+                      <button
+                        key={n.id}
+                        onClick={() => setNote(n.id)}
+                        className="rounded-md px-2 py-1.5 text-left text-[15px] text-muted hover:bg-surface hover:text-text"
+                      >
+                        {n.title || 'Untitled'}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              )}
             </div>
           </>
         ) : (
