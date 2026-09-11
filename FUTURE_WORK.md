@@ -37,19 +37,13 @@ body/description (not title alone — see the plan doc for why), synced via
 `tags.ts`, and filterable through chip rows in Notes and Tasks. See
 `docs/superpowers/plans/2026-09-11-tags.md`.
 
-### 3. Backlinks
+### 3. Backlinks — done
 
-`[[note title]]` references inside a note, with a "linked mentions" panel.
-
-- **Schema:** `note_links (source_id, target_id)` derived table, rebuilt from
-  parsed content on note save (not hand-maintained) — same
-  derive-don't-store philosophy as `stats.ts` uses for activity.
-- **Editor:** BlockNote supports custom inline content — add a `[[` trigger
-  that opens an autocomplete of note titles (reuse the search backend from
-  item 1) and inserts a link node.
-- **Panel:** below the editor, a collapsible "Linked mentions" list queries
-  `note_links WHERE target_id = ?`.
-- **Reuses:** note search for the autocomplete, existing note IPC patterns.
+`[[Note Title]]` references, resolved by case-insensitive title match on
+save (no BlockNote autocomplete — see the plan doc for why that got cut in
+favor of the same plain-text-parse approach Tags uses). A "Linked mentions"
+panel on the target note lists every note linking to it. See
+`docs/superpowers/plans/2026-09-11-backlinks.md`.
 
 ### 4. Backup / export — already done
 
