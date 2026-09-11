@@ -1,6 +1,7 @@
 import { app, shell, BrowserWindow, ipcMain, Menu, nativeImage, Tray } from 'electron'
 import { join } from 'node:path'
 import { getDb, closeDb } from './db/connection'
+import { carryOverMissedTasks } from './db/queries/tasks'
 import { registerIpc } from './ipc'
 import { globalShortcut } from 'electron'
 import { currentHotkey, registerCaptureIpc, registerHotkey, toggleCaptureWindow } from './capture'
@@ -122,6 +123,7 @@ if (needsLock && !app.requestSingleInstanceLock()) {
     if (process.platform === 'win32') app.setAppUserModelId('com.oryn.app')
 
     getDb() // opens the file and runs migrations before any IPC can arrive
+    carryOverMissedTasks()
     registerIpc()
 
     // Repaints the native window buttons when the renderer switches theme.

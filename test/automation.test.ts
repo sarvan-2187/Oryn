@@ -10,6 +10,8 @@ process.env.ORYN_DB_PATH = join(dir, 'test.db')
 const { getDb, closeDb } = await import('../src/main/db/connection')
 const spaces = await import('../src/main/db/queries/spaces')
 const templates = await import('../src/main/db/queries/templates')
+const tasks = await import('../src/main/db/queries/tasks')
+const { addDays, today } = await import('../src/shared/dates')
 
 let passed = 0
 function check(name: string, fn: () => void): void {
@@ -46,6 +48,44 @@ try {
     )
     assert.ok(created.every((task) => task.due_date === '2026-03-01'))
     assert.ok(created.every((task) => task.space_id === academic))
+  })
+
+  const day = today()
+
+  check('carryOverMissedTasks bumps an overdue, undone, non-recurring task to today', () => {
+    const t = tasks.createTask({
+      spaceId: academic,
+      title: 'Overdue thing',
+      dueDate: addDays(day, -5)
+    })
+    const moved = tasks.carryOverMissedTasks(day)
+    assert.ok(moved >= 1)
+    const reloaded = tasks.listTasks({ spaceId: academic, scope: 'all' }).find((x) => x.id === t.id)
+    assert.equal(reloaded!.due_date, day)
+  })
+
+  check('carryOverMissedTasks leaves a recurring task alone', () => {
+    const t = tasks.createTask({
+      spaceId: academic,
+      title: 'Recurring overdue',
+      dueDate: addDays(day, -5),
+      recurRule: 'daily'
+    })
+    tasks.carryOverMissedTasks(day)
+    const reloaded = tasks.listTasks({ spaceId: academic, scope: 'all' }).find((x) => x.id === t.id)
+    assert.equal(reloaded!.due_date, addDays(day, -5))
+  })
+
+  check('carryOverMissedTasks leaves a done task alone', () => {
+    const t = tasks.createTask({
+      spaceId: academic,
+      title: 'Finished late',
+      dueDate: addDays(day, -5)
+    })
+    tasks.toggleTask(t.id, day)
+    tasks.carryOverMissedTasks(day)
+    const reloaded = tasks.listTasks({ spaceId: academic, scope: 'all' }).find((x) => x.id === t.id)
+    assert.equal(reloaded!.due_date, addDays(day, -5))
   })
 
   console.log(`\n${passed} checks passed`)

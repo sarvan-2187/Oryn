@@ -206,3 +206,20 @@ export function taskCounts(
     .get(day, day, day, ...args) as { due: number; overdue: number; done: number }
   return row
 }
+
+/**
+ * Bumps overdue, undone, non-recurring tasks to the given date. Recurring
+ * tasks already spawn a fresh instance on completion (see toggleTask) and
+ * shouldn't also carry over, or a missed recurring task would end up
+ * duplicated. Run once at app launch (see src/main/index.ts).
+ */
+export function carryOverMissedTasks(date?: string): number {
+  const day = date ?? today()
+  const { changes } = getDb()
+    .prepare(
+      `UPDATE tasks SET due_date = ?, updated_at = datetime('now')
+       WHERE status != 'done' AND due_date IS NOT NULL AND due_date < ? AND recur_rule IS NULL`
+    )
+    .run(day, day)
+  return changes
+}
