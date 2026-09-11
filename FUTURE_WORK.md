@@ -61,24 +61,15 @@ auto-carry-over of missed non-recurring tasks on launch, and a dismissible
 due-date suggestion hint based on past completion gaps for similar titles.
 See `docs/superpowers/plans/2026-09-11-automation.md`.
 
-### Insights
+### Insights — done
 
-Builds on the existing `stats.ts`/`ActivityView` heatmap rather than
-duplicating it.
+A Review screen (week/month toggle) showing tasks done vs. created, habit
+completion %, journal entries, and busiest space, each compared against the
+prior period. Plus a short, noise-filtered list of habit pairs that
+correlate (Pearson, `|r| ≥ 0.3`, top 5). See
+`docs/superpowers/plans/2026-09-11-insights.md`.
 
-- **Weekly/monthly review screen:** new `Review` view, reuses
-  `stats.ts` history queries aggregated over a week/month instead of daily —
-  tasks done vs. created, habit completion %, journal-entry count, busiest
-  space.
-- **Trend comparisons:** "this period vs. last period" deltas — same
-  `historyFor()` queries called twice with two date ranges, diffed in the UI.
-  No new backend concept.
-- **Habit correlation stats:** for each pair of active habits, a simple
-  same-day co-occurrence rate from `habit_entries` (no real statistics
-  library — a plain correlation-coefficient calc in TS is enough at this
-  data scale). Weakest/most speculative of the insights items — ship after
-  the review screen and trends prove useful, cut if correlations turn out
-  noisy with typical entry counts.
+**Phase 5 complete.**
 
 ## Phase 6
 
