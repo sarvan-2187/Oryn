@@ -185,6 +185,7 @@ export interface OrynApi {
     setTheme(theme: 'dark' | 'light'): Promise<void>
     /** Scales the whole interface. 1 is 100%. */
     setZoom(factor: number): void
+    popOutNote(noteId: number): Promise<void>
   }
 }
 

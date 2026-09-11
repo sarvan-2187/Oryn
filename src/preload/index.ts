@@ -127,7 +127,8 @@ const api = {
   window: {
     setTheme: invoke('window:theme'),
     /** Scales the entire UI, editor and all, rather than any one font rule. */
-    setZoom: (factor: number) => webFrame.setZoomFactor(factor)
+    setZoom: (factor: number) => webFrame.setZoomFactor(factor),
+    popOutNote: invoke('window:popOutNote')
   }
 }
 

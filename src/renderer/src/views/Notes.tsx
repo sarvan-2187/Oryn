@@ -6,6 +6,7 @@ import { SimpleSelect } from '../components/ui/simple-select'
 import {
   ArchiveIcon,
   ArchiveRestoreIcon,
+  ExternalLinkIcon,
   Maximize2Icon,
   Minimize2Icon,
   PlusIcon,
@@ -230,6 +231,14 @@ export function NotesView({ archived }: { archived: boolean }): React.JSX.Elemen
                 ) : (
                   <Maximize2Icon className="size-4" />
                 )}
+              </button>
+              <button
+                onClick={() => void window.oryn.window.popOutNote(note.id)}
+                title="Open in a new window"
+                aria-label="Open in a new window"
+                className="grid size-8 shrink-0 place-items-center rounded-md border border-border text-muted hover:border-accent hover:text-text"
+              >
+                <ExternalLinkIcon className="size-4" />
               </button>
               <SimpleSelect
                 value={String(note.space_id)}

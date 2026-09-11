@@ -12,6 +12,7 @@ import * as insights from './db/queries/insights'
 import * as lock from './db/queries/lock'
 import * as attachmentsDb from './db/queries/attachments'
 import { pickAndAttachFile, openAttachment } from './attachments'
+import { popOutNote } from './popout'
 import * as stats from './db/queries/stats'
 import * as planner from './db/queries/planner'
 import { backupNow, exportMarkdown, revealPath } from './backup'
@@ -99,6 +100,8 @@ const handlers = {
   'captures:count': planner.captureCount,
   'captures:delete': planner.deleteCapture,
   'captures:convert': planner.convertCapture,
+
+  'window:popOutNote': popOutNote,
 
   'data:path': dbPath,
   'data:backup': backupNow,
