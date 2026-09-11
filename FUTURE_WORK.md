@@ -85,27 +85,13 @@ event listeners, not main-process activity events as the original note
 assumed (none existed) — see the plan doc. Not full at-rest encryption,
 by design. See `docs/superpowers/plans/2026-09-11-app-lock.md`.
 
-### Attachments
+### Attachments — done
 
-Images in notes, files on tasks, voice notes — same underlying storage.
-
-- **Storage:** one `attachments` table (`id`, `kind`, `owner_type`,
-  `owner_id`, `filename`, `created_at`) plus files on disk under
-  `userData/attachments/<id>-<filename>` — mirrors how `backup.ts` already
-  uses `app.getPath('userData')`, no new storage concept.
-- **Images in notes:** BlockNote's default schema already has an image block;
-  it just needs an `uploadFile` handler wired into `useCreateBlockNote` that
-  saves the dropped/pasted file and returns a local URL (a custom
-  `oryn-file://` protocol registered in the main process, since `file://`
-  paths get finicky with Electron's security settings).
-- **Files on tasks:** small attachment-chip list under a task's description,
-  same table filtered by `owner_type = 'task'`. Add/remove via native
-  `dialog.showOpenDialog`.
-- **Voice notes:** record via the renderer's `MediaRecorder` (native browser
-  API, no dependency), save the resulting blob through the same attachments
-  IPC as files, `kind = 'audio'`. Playback is a plain `<audio>` element.
-- Skipped: attachment size limits/compression, cloud storage — everything
-  lives in `userData`, same trust boundary as the SQLite file already sits in.
+Files on tasks and voice notes on notes share one `attachments` table +
+`userData/attachments/`. Images skip that table entirely — the original
+custom `oryn-file://` protocol idea was dropped in favor of BlockNote's
+`uploadFile` just returning a `data:` URL, no protocol/IPC needed at all.
+See `docs/superpowers/plans/2026-09-11-attachments.md`.
 
 ### Multi-window / focus modes
 
