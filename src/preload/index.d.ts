@@ -19,7 +19,8 @@ import type {
   DeadlineKind,
   ClassSlot,
   Capture,
-  GlobalSearchResult
+  GlobalSearchResult,
+  Tag
 } from '../shared/types'
 
 export interface OrynApi {
@@ -30,7 +31,11 @@ export interface OrynApi {
     delete(id: number): Promise<void>
   }
   notes: {
-    list(opts?: { spaceId?: number | null; archived?: boolean }): Promise<NoteSummary[]>
+    list(opts?: {
+      spaceId?: number | null
+      archived?: boolean
+      tagId?: number | null
+    }): Promise<NoteSummary[]>
     get(id: number): Promise<Note | undefined>
     create(input: { spaceId: number; title?: string }): Promise<Note>
     update(id: number, patch: NotePatch): Promise<void>
@@ -41,11 +46,15 @@ export interface OrynApi {
   search: {
     global(query: string, spaceId?: number | null): Promise<GlobalSearchResult>
   }
+  tags: {
+    list(): Promise<Tag[]>
+  }
   tasks: {
     list(opts?: {
       spaceId?: number | null
       scope?: 'today' | 'upcoming' | 'all' | 'someday'
       date?: string
+      tagId?: number | null
     }): Promise<TaskTree[]>
     create(input: {
       spaceId: number

@@ -25,6 +25,9 @@ const api = {
   search: {
     global: invoke('search:global')
   },
+  tags: {
+    list: invoke('tags:list')
+  },
   tasks: {
     list: invoke('tasks:list'),
     create: invoke('tasks:create'),

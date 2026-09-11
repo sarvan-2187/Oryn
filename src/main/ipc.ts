@@ -5,6 +5,7 @@ import * as tasks from './db/queries/tasks'
 import * as habits from './db/queries/habits'
 import * as journal from './db/queries/journal'
 import * as search from './db/queries/search'
+import * as tags from './db/queries/tags'
 import * as stats from './db/queries/stats'
 import * as planner from './db/queries/planner'
 import { backupNow, exportMarkdown, revealPath } from './backup'
@@ -29,6 +30,8 @@ const handlers = {
   'notes:search': notes.searchNotes,
 
   'search:global': search.globalSearch,
+
+  'tags:list': tags.listTags,
 
   'tasks:list': tasks.listTasks,
   'tasks:create': tasks.createTask,
