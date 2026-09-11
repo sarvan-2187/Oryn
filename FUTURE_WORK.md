@@ -76,23 +76,14 @@ correlate (Pearson, `|r| ≥ 0.3`, top 5). See
 App lock, attachments, and multi-window/focus modes. No build-order
 dependency between the three; app lock is the smallest, do it first.
 
-### App lock
+### App lock — done
 
-PIN/passcode gate on launch and after idle. Not full at-rest encryption — the
-SQLite file stays plain, this is a UI-level lock so a casual look at the app
-doesn't expose the journal.
-
-- **Storage:** PIN hash (not plaintext) in the existing `settings`
-  key-value table — no new table needed.
-- **Gate:** a lock screen component rendered before the shell mounts if a PIN
-  is set; unlocks the render, doesn't protect the file on disk.
-- **Idle re-lock:** reuse the existing window-focus/activity events already
-  wired in `index.ts` for tray/window handling; re-show the lock screen after
-  N idle minutes (configurable in Settings, default e.g. 10).
-- Skipped: full DB encryption (SQLCipher) — that's a real driver swap
-  (`better-sqlite3` → a SQLCipher-compatible build) for a desktop app that's
-  already local-only; revisit only if the threat model changes (e.g. cloud
-  sync lands and the file leaves the machine).
+A PIN gate: locks on launch if a PIN is set (`lock.ts`, scrypt-hashed via
+Node's built-in `crypto`, stored in `settings`), and re-locks after an
+idle timeout configurable in Settings. Idle re-lock is done via renderer
+event listeners, not main-process activity events as the original note
+assumed (none existed) — see the plan doc. Not full at-rest encryption,
+by design. See `docs/superpowers/plans/2026-09-11-app-lock.md`.
 
 ### Attachments
 
