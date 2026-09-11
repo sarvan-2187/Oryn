@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { useStore } from '../store'
 import { confirmDialog } from './ConfirmDialog'
+import { TaskAttachments } from './TaskAttachments'
 import { SimpleSelect } from './ui/simple-select'
 import { CheckIcon, PencilIcon, RepeatIcon, Trash2Icon } from 'lucide-react'
 import { daysBetween, today } from '../../../shared/dates'
@@ -296,6 +297,7 @@ export function TaskRow({ task, onChanged, highlighted }: Props): React.JSX.Elem
             placeholder="Add a subtask…"
             className="mt-1 w-full bg-transparent text-[15px] outline-none placeholder:text-faint"
           />
+          <TaskAttachments taskId={task.id} />
         </div>
       )}
     </div>
