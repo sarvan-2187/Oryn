@@ -10,7 +10,7 @@ import { startReminders } from './reminders'
 const isDev = !app.isPackaged
 
 /** Shared with the renderer's top bar so the two line up exactly. */
-const TITLEBAR_HEIGHT = 40
+const TITLEBAR_HEIGHT = 46
 
 /** Native window-button colours per theme, applied when the renderer toggles. */
 const OVERLAY = {

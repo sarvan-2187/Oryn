@@ -3,7 +3,7 @@ import { useStore, type View } from '../store'
 import icon from '../assets/icon.svg'
 
 /** Must match TITLEBAR_HEIGHT in src/main/index.ts. */
-export const TITLEBAR_HEIGHT = 40
+export const TITLEBAR_HEIGHT = 46
 
 /**
  * Reserved strip on the right for the native min/max/close buttons that
@@ -78,7 +78,7 @@ export function TopBar(): React.JSX.Element {
       {/* Kept in the flex flow between the two clusters. Absolute centring
           looked tidier with four views but overlapped the search box at six. */}
       <div className="shrink-0" style={{ WebkitAppRegion: 'no-drag' } as React.CSSProperties}>
-        <nav className="flex items-center gap-0.5 rounded-full border border-border bg-bg p-0.5">
+        <nav className="flex items-center gap-0.5 rounded-full border border-border bg-bg p-1">
           {VIEWS.map((v) => (
             <button
               key={v.id}
