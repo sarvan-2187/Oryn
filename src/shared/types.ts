@@ -210,3 +210,12 @@ export interface HabitCorrelation {
   /** Pearson correlation of the two habits' daily done/not-done sequences, -1 to 1. */
   correlation: number
 }
+
+export interface Attachment {
+  id: number
+  kind: 'file' | 'audio'
+  owner_type: 'note' | 'task'
+  owner_id: number
+  filename: string
+  created_at: string
+}
