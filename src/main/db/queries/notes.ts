@@ -1,4 +1,5 @@
 import { getDb } from '../connection'
+import { syncNoteTags } from './tags'
 import type { Note, NoteSummary, NotePatch } from '../../../shared/types'
 
 export type { Note, NoteSummary }
@@ -9,20 +10,23 @@ const SUMMARY_COLS = `
 `
 
 export function listNotes(
-  opts: { spaceId?: number | null; archived?: boolean } = {}
+  opts: { spaceId?: number | null; archived?: boolean; tagId?: number | null } = {}
 ): NoteSummary[] {
   const where: string[] = [opts.archived ? 'archived_at IS NOT NULL' : 'archived_at IS NULL']
-  const params: unknown[] = []
+  const whereParams: unknown[] = []
   if (opts.spaceId != null) {
     where.push('space_id = ?')
-    params.push(opts.spaceId)
+    whereParams.push(opts.spaceId)
   }
+  const join =
+    opts.tagId != null ? 'JOIN note_tags nt ON nt.note_id = notes.id AND nt.tag_id = ?' : ''
+  const joinParams = opts.tagId != null ? [opts.tagId] : []
   return getDb()
     .prepare(
-      `SELECT ${SUMMARY_COLS} FROM notes WHERE ${where.join(' AND ')}
+      `SELECT ${SUMMARY_COLS} FROM notes ${join} WHERE ${where.join(' AND ')}
        ORDER BY is_pinned DESC, updated_at DESC`
     )
-    .all(...params) as NoteSummary[]
+    .all(...joinParams, ...whereParams) as NoteSummary[]
 }
 
 export function getNote(id: number): Note | undefined {
@@ -34,6 +38,7 @@ export function createNote(input: { spaceId: number; title?: string }): Note {
   const { lastInsertRowid } = db
     .prepare('INSERT INTO notes (space_id, title) VALUES (?, ?)')
     .run(input.spaceId, input.title ?? '')
+  if (input.title) syncNoteTags(lastInsertRowid as number, input.title)
   return db.prepare('SELECT * FROM notes WHERE id = ?').get(lastInsertRowid) as Note
 }
 
@@ -69,6 +74,14 @@ export function updateNote(id: number, patch: NotePatch): void {
   getDb()
     .prepare(`UPDATE notes SET ${set.join(', ')}, updated_at = datetime('now') WHERE id = ?`)
     .run(...params)
+
+  if (patch.title !== undefined || patch.contentText !== undefined) {
+    const row = getDb().prepare('SELECT title, content_text FROM notes WHERE id = ?').get(id) as {
+      title: string
+      content_text: string
+    }
+    syncNoteTags(id, `${row.title} ${row.content_text}`)
+  }
 }
 
 export function archiveNote(id: number, archived = true): void {

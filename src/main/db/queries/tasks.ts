@@ -1,5 +1,6 @@
 import { getDb } from '../connection'
 import { nextOccurrence, today } from '../../../shared/dates'
+import { syncTaskTags } from './tags'
 import type { Task, TaskTree, TaskPatch } from '../../../shared/types'
 
 export type { Task, TaskTree }
@@ -13,7 +14,7 @@ export type Scope = 'today' | 'upcoming' | 'all' | 'someday'
  * off gives feedback instead of making it vanish mid-click.
  */
 export function listTasks(
-  opts: { spaceId?: number | null; scope?: Scope; date?: string } = {}
+  opts: { spaceId?: number | null; scope?: Scope; date?: string; tagId?: number | null } = {}
 ): TaskTree[] {
   const db = getDb()
   const day = opts.date ?? today()
@@ -41,9 +42,13 @@ export function listTasks(
       break
   }
 
+  const join =
+    opts.tagId != null ? 'JOIN task_tags tt ON tt.task_id = tasks.id AND tt.tag_id = ?' : ''
+  const joinParams = opts.tagId != null ? [opts.tagId] : []
+
   const parents = db
     .prepare(
-      `SELECT * FROM tasks WHERE ${where.join(' AND ')}
+      `SELECT tasks.* FROM tasks ${join} WHERE ${where.join(' AND ')}
        ORDER BY
          status = 'done',
          due_date IS NULL,
@@ -51,7 +56,7 @@ export function listTasks(
          CASE priority WHEN 'high' THEN 0 WHEN 'med' THEN 1 ELSE 2 END,
          sort_order, id`
     )
-    .all(...params) as Task[]
+    .all(...joinParams, ...params) as Task[]
 
   if (parents.length === 0) return []
 
@@ -85,6 +90,7 @@ export function createTask(input: {
       input.priority ?? 'med',
       input.recurRule ?? null
     )
+  syncTaskTags(lastInsertRowid as number, input.title)
   return db.prepare('SELECT * FROM tasks WHERE id = ?').get(lastInsertRowid) as Task
 }
 
@@ -113,6 +119,14 @@ export function updateTask(id: number, patch: TaskPatch): void {
   getDb()
     .prepare(`UPDATE tasks SET ${set.join(', ')}, updated_at = datetime('now') WHERE id = ?`)
     .run(...params)
+
+  if (patch.title !== undefined || patch.description !== undefined) {
+    const row = getDb().prepare('SELECT title, description FROM tasks WHERE id = ?').get(id) as {
+      title: string
+      description: string
+    }
+    syncTaskTags(id, `${row.title} ${row.description}`)
+  }
 }
 
 /**
@@ -148,18 +162,21 @@ export function toggleTask(id: number, date?: string): Task | undefined {
 
     if (task.recur_rule) {
       const base = task.due_date ?? day
-      db.prepare(
-        `INSERT INTO tasks (space_id, parent_id, title, description, due_date, priority, recur_rule, sort_order)
-         VALUES (?, NULL, ?, ?, ?, ?, ?, ?)`
-      ).run(
-        task.space_id,
-        task.title,
-        task.description,
-        nextOccurrence(base, task.recur_rule),
-        task.priority,
-        task.recur_rule,
-        task.sort_order
-      )
+      const { lastInsertRowid } = db
+        .prepare(
+          `INSERT INTO tasks (space_id, parent_id, title, description, due_date, priority, recur_rule, sort_order)
+           VALUES (?, NULL, ?, ?, ?, ?, ?, ?)`
+        )
+        .run(
+          task.space_id,
+          task.title,
+          task.description,
+          nextOccurrence(base, task.recur_rule),
+          task.priority,
+          task.recur_rule,
+          task.sort_order
+        )
+      syncTaskTags(lastInsertRowid as number, `${task.title} ${task.description}`)
     }
 
     return db.prepare('SELECT * FROM tasks WHERE id = ?').get(id) as Task
