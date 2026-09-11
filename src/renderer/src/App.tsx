@@ -5,6 +5,7 @@ import { Sidebar } from './components/Sidebar'
 import { CommandPalette } from './components/CommandPalette'
 import { ConfirmDialog } from './components/ConfirmDialog'
 import { LockScreen } from './components/LockScreen'
+import { IdleLockWatcher } from './components/IdleLockWatcher'
 import { DashboardView } from './views/Dashboard'
 import { NotesView } from './views/Notes'
 import { TasksView } from './views/Tasks'
@@ -88,6 +89,7 @@ export default function App(): React.JSX.Element {
         </>
       )}
       <ConfirmDialog />
+      <IdleLockWatcher />
     </div>
   )
 }
