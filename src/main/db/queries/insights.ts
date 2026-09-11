@@ -1,6 +1,6 @@
 import { getDb } from '../connection'
-import { daysBetween } from '../../../shared/dates'
-import type { ReviewSummary } from '../../../shared/types'
+import { addDays, daysBetween } from '../../../shared/dates'
+import type { ReviewSummary, HabitCorrelation } from '../../../shared/types'
 
 function count(sql: string, params: unknown[]): number {
   const row = getDb().prepare(sql).get(...params) as { n: number }
@@ -78,4 +78,91 @@ export function reviewSummary(from: string, to: string, spaceId?: number | null)
     journalEntries,
     busiestSpace: spaceId != null ? null : busiestSpace(from, to)
   }
+}
+
+/** Pearson correlation of two 0/1 sequences. Null when either has no variance. */
+function pearson(xs: number[], ys: number[]): number | null {
+  const n = xs.length
+  if (n === 0) return null
+  const meanX = xs.reduce((a, b) => a + b, 0) / n
+  const meanY = ys.reduce((a, b) => a + b, 0) / n
+  let num = 0
+  let denX = 0
+  let denY = 0
+  for (let i = 0; i < n; i++) {
+    const dx = xs[i] - meanX
+    const dy = ys[i] - meanY
+    num += dx * dy
+    denX += dx * dx
+    denY += dy * dy
+  }
+  if (denX === 0 || denY === 0) return null
+  return num / Math.sqrt(denX * denY)
+}
+
+const CORRELATION_THRESHOLD = 0.3
+const MAX_CORRELATIONS = 5
+
+/**
+ * Same-day co-occurrence between pairs of active habits, as a Pearson
+ * correlation of their daily done/not-done sequences. Computed in plain TS
+ * rather than SQL — pairwise comparison across N habits doesn't map cleanly
+ * onto one query, and the data volume here is tiny. Noise-filtered: weak
+ * pairs (|r| < 0.3) are dropped, and only the strongest 5 are returned —
+ * this is the most speculative of the Insights items, so it stays a short,
+ * skimmable list.
+ */
+export function habitCorrelations(
+  from: string,
+  to: string,
+  spaceId?: number | null
+): HabitCorrelation[] {
+  const db = getDb()
+  const scope = spaceId != null ? 'AND space_id = ?' : ''
+  const scopeArgs = spaceId != null ? [spaceId] : []
+  const habitRows = db
+    .prepare(`SELECT id, name, target FROM habits WHERE is_active = 1 ${scope}`)
+    .all(...scopeArgs) as { id: number; name: string; target: number }[]
+  if (habitRows.length < 2) return []
+
+  const entries = db
+    .prepare('SELECT habit_id, date, value FROM habit_entries WHERE date BETWEEN ? AND ?')
+    .all(from, to) as { habit_id: number; date: string; value: number }[]
+
+  const targetById = new Map(habitRows.map((h) => [h.id, h.target]))
+  const doneDatesById = new Map<number, Set<string>>()
+  for (const e of entries) {
+    const target = targetById.get(e.habit_id)
+    if (target == null || e.value < target) continue
+    if (!doneDatesById.has(e.habit_id)) doneDatesById.set(e.habit_id, new Set())
+    doneDatesById.get(e.habit_id)!.add(e.date)
+  }
+
+  const dates: string[] = []
+  for (let d = from; d <= to; d = addDays(d, 1)) dates.push(d)
+
+  const results: HabitCorrelation[] = []
+  for (let i = 0; i < habitRows.length; i++) {
+    for (let j = i + 1; j < habitRows.length; j++) {
+      const a = habitRows[i]
+      const b = habitRows[j]
+      const doneA = doneDatesById.get(a.id) ?? new Set()
+      const doneB = doneDatesById.get(b.id) ?? new Set()
+      const r = pearson(
+        dates.map((d) => (doneA.has(d) ? 1 : 0)),
+        dates.map((d) => (doneB.has(d) ? 1 : 0))
+      )
+      if (r != null && Math.abs(r) >= CORRELATION_THRESHOLD) {
+        results.push({
+          habitA: { id: a.id, name: a.name },
+          habitB: { id: b.id, name: b.name },
+          correlation: r
+        })
+      }
+    }
+  }
+
+  return results
+    .sort((x, y) => Math.abs(y.correlation) - Math.abs(x.correlation))
+    .slice(0, MAX_CORRELATIONS)
 }

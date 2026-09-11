@@ -81,6 +81,36 @@ try {
     assert.equal(s.busiestSpace, null)
   })
 
+  check('habitCorrelations returns nothing with fewer than two active habits', () => {
+    const solo = habits.createHabit({ spaceId: academic, name: 'Solo habit' })
+    for (let i = 0; i < 7; i++) habits.toggleHabit(solo.id, addDays(day, -i))
+    // Delete every other habit created by earlier checks so exactly one remains.
+    for (const h of habits.listHabits(null)) {
+      if (h.id !== solo.id) habits.deleteHabit(h.id)
+    }
+    assert.deepEqual(insights.habitCorrelations(from, day, null), [])
+  })
+
+  check('two habits checked off on exactly the same days correlate strongly', () => {
+    const a = habits.createHabit({ spaceId: academic, name: 'Read' })
+    const b = habits.createHabit({ spaceId: academic, name: 'Write' })
+    for (let i = 0; i < 7; i++) {
+      const d = addDays(day, -i)
+      if (i % 2 === 0) {
+        habits.toggleHabit(a.id, d)
+        habits.toggleHabit(b.id, d)
+      }
+    }
+    const results = insights.habitCorrelations(from, day, null)
+    const pair = results.find(
+      (r) =>
+        (r.habitA.name === 'Read' && r.habitB.name === 'Write') ||
+        (r.habitA.name === 'Write' && r.habitB.name === 'Read')
+    )
+    assert.ok(pair)
+    assert.ok(pair!.correlation > 0.9)
+  })
+
   console.log(`\n${passed} checks passed`)
 } finally {
   closeDb()
