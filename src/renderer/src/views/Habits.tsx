@@ -134,11 +134,12 @@ function HabitEditor({
 }
 
 export function HabitsView(): React.JSX.Element {
-  const { activeSpaceId, spaces } = useStore()
+  const { activeSpaceId, spaces, focusHabitId, setFocusHabitId } = useStore()
   const day = today()
   const [habits, setHabits] = useState<HabitToday[]>([])
   const [details, setDetails] = useState<Record<number, Detail>>({})
   const [editing, setEditing] = useState<number | null>(null)
+  const [highlightId, setHighlightId] = useState<number | null>(null)
 
   const [name, setName] = useState('')
   const [kind, setKind] = useState<HabitKind>('bool')
@@ -164,6 +165,17 @@ export function HabitsView(): React.JSX.Element {
   useEffect(() => {
     void refresh()
   }, [refresh])
+
+  useEffect(() => {
+    if (focusHabitId == null) return
+    const el = document.getElementById(`habit-${focusHabitId}`)
+    if (!el) return
+    el.scrollIntoView({ block: 'center', behavior: 'smooth' })
+    setHighlightId(focusHabitId)
+    setFocusHabitId(null)
+    const t = setTimeout(() => setHighlightId(null), 1500)
+    return () => clearTimeout(t)
+  }, [habits, focusHabitId, setFocusHabitId])
 
   const add = async (): Promise<void> => {
     const text = name.trim()
@@ -247,7 +259,13 @@ export function HabitsView(): React.JSX.Element {
           {habits.map((h) => {
             const d = details[h.id]
             return (
-              <div key={h.id} className="group rounded-lg border border-border bg-surface p-3">
+              <div
+                key={h.id}
+                id={`habit-${h.id}`}
+                className={`group rounded-lg border border-border bg-surface p-3 transition-shadow ${
+                  highlightId === h.id ? 'ring-2 ring-inset ring-accent' : ''
+                }`}
+              >
                 {editing === h.id ? (
                   <HabitEditor
                     habit={h}
