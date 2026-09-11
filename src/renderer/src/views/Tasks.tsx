@@ -24,8 +24,28 @@ export function TasksView(): React.JSX.Element {
 
   const [title, setTitle] = useState('')
   const [due, setDue] = useState(today())
+  const [dueTouched, setDueTouched] = useState(false)
+  const [suggestion, setSuggestion] = useState<string | null>(null)
   const [priority, setPriority] = useState<Priority>('med')
   const [recur, setRecur] = useState<RecurRule | typeof NO_RECUR>(NO_RECUR)
+
+  // Only offers a suggestion while the due date still holds its untouched
+  // default — the field always has a value (it defaults to today), so
+  // "untouched" has to be tracked explicitly rather than read off emptiness.
+  useEffect(() => {
+    if (!title.trim() || dueTouched) {
+      setSuggestion(null)
+      return
+    }
+    const target = activeSpaceId ?? spaces.find((s) => !s.is_system)?.id
+    if (target == null) return
+    const t = setTimeout(() => {
+      void window.oryn.tasks.suggestDueDate(target, title).then((s) => {
+        setSuggestion(s && s !== due ? s : null)
+      })
+    }, 400)
+    return () => clearTimeout(t)
+  }, [title, dueTouched, due, activeSpaceId, spaces])
 
   useEffect(() => {
     void window.oryn.tags.list().then(setTags)
@@ -71,6 +91,7 @@ export function TasksView(): React.JSX.Element {
       recurRule: recur === NO_RECUR ? null : recur
     })
     setTitle('')
+    setSuggestion(null)
     await refresh()
   }
 
@@ -124,9 +145,25 @@ export function TasksView(): React.JSX.Element {
             <input
               type="date"
               value={due}
-              onChange={(e) => setDue(e.target.value)}
+              onChange={(e) => {
+                setDue(e.target.value)
+                setDueTouched(true)
+              }}
               className="rounded border border-border bg-bg px-1.5 py-1 text-muted outline-none focus:border-accent"
             />
+            {suggestion && (
+              <button
+                type="button"
+                onClick={() => {
+                  setDue(suggestion)
+                  setDueTouched(true)
+                  setSuggestion(null)
+                }}
+                className="rounded border border-dashed border-border px-1.5 py-1 text-muted hover:border-accent hover:text-text"
+              >
+                Suggest: {suggestion}
+              </button>
+            )}
             <SimpleSelect
               value={priority}
               onChange={(v) => setPriority(v as Priority)}
