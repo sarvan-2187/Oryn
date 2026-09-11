@@ -6,6 +6,7 @@ import { registerIpc } from './ipc'
 import { globalShortcut } from 'electron'
 import { currentHotkey, registerCaptureIpc, registerHotkey, toggleCaptureWindow } from './capture'
 import { startReminders } from './reminders'
+import { startPomodoroTicker } from './pomodoro'
 
 const isDev = !app.isPackaged
 
@@ -23,6 +24,9 @@ let tray: Tray | null = null
 
 /** Set once reminders start; cleared and called on quit to stop the hourly check. */
 let stopReminders: (() => void) | null = null
+
+/** Set once the Pomodoro ticker starts; cleared and called on quit. */
+let stopPomodoroTicker: (() => void) | null = null
 
 /**
  * Resolves the same way packaged and unpackaged: `out/main` sits two levels
@@ -137,6 +141,7 @@ if (needsLock && !app.requestSingleInstanceLock()) {
     if (!registerHotkey(currentHotkey())) console.warn('hotkey rejected:', currentHotkey())
     buildTray()
     stopReminders = startReminders(showMainWindow)
+    stopPomodoroTicker = startPomodoroTicker()
 
     createWindow()
 
@@ -155,6 +160,7 @@ if (needsLock && !app.requestSingleInstanceLock()) {
 
   app.on('will-quit', () => {
     stopReminders?.()
+    stopPomodoroTicker?.()
     globalShortcutCleanup()
     closeDb()
   })

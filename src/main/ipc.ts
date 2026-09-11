@@ -13,6 +13,7 @@ import * as lock from './db/queries/lock'
 import * as attachmentsDb from './db/queries/attachments'
 import { pickAndAttachFile, openAttachment } from './attachments'
 import { popOutNote } from './popout'
+import { getPomodoroState, togglePomodoro, resetPomodoro } from './pomodoro'
 import * as stats from './db/queries/stats'
 import * as planner from './db/queries/planner'
 import { backupNow, exportMarkdown, revealPath } from './backup'
@@ -102,6 +103,10 @@ const handlers = {
   'captures:convert': planner.convertCapture,
 
   'window:popOutNote': popOutNote,
+
+  'pomodoro:state': getPomodoroState,
+  'pomodoro:toggle': togglePomodoro,
+  'pomodoro:reset': resetPomodoro,
 
   'data:path': dbPath,
   'data:backup': backupNow,

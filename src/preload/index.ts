@@ -129,6 +129,19 @@ const api = {
     /** Scales the entire UI, editor and all, rather than any one font rule. */
     setZoom: (factor: number) => webFrame.setZoomFactor(factor),
     popOutNote: invoke('window:popOutNote')
+  },
+  pomodoro: {
+    state: invoke('pomodoro:state'),
+    toggle: invoke('pomodoro:toggle'),
+    reset: invoke('pomodoro:reset'),
+    onTick: (cb: (state: import('../shared/types').PomodoroState) => void) => {
+      const handler = (
+        _e: IpcRendererEvent,
+        state: import('../shared/types').PomodoroState
+      ): void => cb(state)
+      ipcRenderer.on('pomodoro:tick', handler)
+      return () => ipcRenderer.removeListener('pomodoro:tick', handler)
+    }
   }
 }
 

@@ -219,3 +219,10 @@ export interface Attachment {
   filename: string
   created_at: string
 }
+
+export interface PomodoroState {
+  phase: 'focus' | 'break'
+  running: boolean
+  /** Seconds left in the current phase. */
+  remaining: number
+}

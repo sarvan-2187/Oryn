@@ -24,7 +24,8 @@ import type {
   Template,
   ReviewSummary,
   HabitCorrelation,
-  Attachment
+  Attachment,
+  PomodoroState
 } from '../shared/types'
 
 export interface OrynApi {
@@ -186,6 +187,13 @@ export interface OrynApi {
     /** Scales the whole interface. 1 is 100%. */
     setZoom(factor: number): void
     popOutNote(noteId: number): Promise<void>
+  }
+  pomodoro: {
+    state(): Promise<PomodoroState>
+    toggle(): Promise<PomodoroState>
+    reset(): Promise<PomodoroState>
+    /** Returns an unsubscribe function. */
+    onTick(cb: (state: PomodoroState) => void): () => void
   }
 }
 
