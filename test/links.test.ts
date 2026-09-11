@@ -69,6 +69,33 @@ try {
     assert.equal(links.listBacklinks(b.id).length, 1)
   })
 
+  check('creating a note with a [[link]] in the title links it immediately', () => {
+    const target = notes.createNote({ spaceId: academic, title: 'Immediate Target' })
+    const source = notes.createNote({ spaceId: academic, title: 'See [[Immediate Target]]' })
+    const backlinks = links.listBacklinks(target.id)
+    assert.deepEqual(
+      backlinks.map((n) => n.id),
+      [source.id]
+    )
+  })
+
+  check('editing a note body to add a [[link]] creates the backlink', () => {
+    const target = notes.createNote({ spaceId: academic, title: 'Body Target' })
+    const source = notes.createNote({ spaceId: academic, title: 'Editable' })
+    assert.equal(links.listBacklinks(target.id).length, 0)
+    notes.updateNote(source.id, { contentText: 'Mentions [[Body Target]] in the body.' })
+    assert.equal(links.listBacklinks(target.id).length, 1)
+  })
+
+  check('editing a note to remove a [[link]] drops the backlink', () => {
+    const target = notes.createNote({ spaceId: academic, title: 'Removable Target' })
+    const source = notes.createNote({ spaceId: academic, title: 'Has link' })
+    notes.updateNote(source.id, { contentText: 'See [[Removable Target]]' })
+    assert.equal(links.listBacklinks(target.id).length, 1)
+    notes.updateNote(source.id, { contentText: 'No link anymore' })
+    assert.equal(links.listBacklinks(target.id).length, 0)
+  })
+
   console.log(`\n${passed} checks passed`)
 } finally {
   closeDb()

@@ -1,5 +1,6 @@
 import { getDb } from '../connection'
 import { syncNoteTags } from './tags'
+import { syncNoteLinks } from './links'
 import type { Note, NoteSummary, NotePatch } from '../../../shared/types'
 
 export type { Note, NoteSummary }
@@ -38,7 +39,10 @@ export function createNote(input: { spaceId: number; title?: string }): Note {
   const { lastInsertRowid } = db
     .prepare('INSERT INTO notes (space_id, title) VALUES (?, ?)')
     .run(input.spaceId, input.title ?? '')
-  if (input.title) syncNoteTags(lastInsertRowid as number, input.title)
+  if (input.title) {
+    syncNoteTags(lastInsertRowid as number, input.title)
+    syncNoteLinks(lastInsertRowid as number, input.title)
+  }
   return db.prepare('SELECT * FROM notes WHERE id = ?').get(lastInsertRowid) as Note
 }
 
@@ -81,6 +85,7 @@ export function updateNote(id: number, patch: NotePatch): void {
       content_text: string
     }
     syncNoteTags(id, `${row.title} ${row.content_text}`)
+    syncNoteLinks(id, `${row.title} ${row.content_text}`)
   }
 }
 
