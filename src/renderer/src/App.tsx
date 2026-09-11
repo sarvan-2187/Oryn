@@ -18,8 +18,18 @@ import { InboxView } from './views/Inbox'
 import { SettingsView } from './views/Settings'
 
 export default function App(): React.JSX.Element {
-  const { loadSpaces, activeView, activeSpaceId, setPalette, paletteOpen, sidebarOpen, locked, setLocked } =
-    useStore()
+  const {
+    loadSpaces,
+    activeView,
+    activeSpaceId,
+    setPalette,
+    paletteOpen,
+    sidebarOpen,
+    locked,
+    setLocked,
+    focusMode,
+    setFocusMode
+  } = useStore()
 
   useEffect(() => {
     void loadSpaces()
@@ -37,7 +47,10 @@ export default function App(): React.JSX.Element {
         e.preventDefault()
         setPalette(!useStore.getState().paletteOpen)
       }
-      if (e.key === 'Escape') setPalette(false)
+      if (e.key === 'Escape') {
+        if (paletteOpen) setPalette(false)
+        else if (focusMode) setFocusMode(false)
+      }
 
       // Ctrl +/-/0 scales the interface, as in a browser.
       if (e.ctrlKey || e.metaKey) {
@@ -56,7 +69,7 @@ export default function App(): React.JSX.Element {
     }
     window.addEventListener('keydown', onKey)
     return () => window.removeEventListener('keydown', onKey)
-  }, [setPalette])
+  }, [setPalette, paletteOpen, focusMode, setFocusMode])
 
   // Views are keyed by space so switching space refetches rather than showing
   // the previous space's rows until the next render settles.
@@ -68,9 +81,9 @@ export default function App(): React.JSX.Element {
         <LockScreen />
       ) : (
         <>
-          <TopBar />
+          {!focusMode && <TopBar />}
           <div className="flex min-h-0 flex-1">
-            {sidebarOpen && <Sidebar />}
+            {sidebarOpen && !focusMode && <Sidebar />}
             <main className="flex min-w-0 flex-1">
               {activeView === 'dashboard' && <DashboardView key={key} />}
               {activeView === 'notes' && <NotesView key={key} archived={false} />}

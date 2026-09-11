@@ -3,7 +3,15 @@ import { useStore } from '../store'
 import { Editor } from '../components/Editor'
 import { confirmDialog } from '../components/ConfirmDialog'
 import { SimpleSelect } from '../components/ui/simple-select'
-import { ArchiveIcon, ArchiveRestoreIcon, PlusIcon, StarIcon, Trash2Icon } from 'lucide-react'
+import {
+  ArchiveIcon,
+  ArchiveRestoreIcon,
+  Maximize2Icon,
+  Minimize2Icon,
+  PlusIcon,
+  StarIcon,
+  Trash2Icon
+} from 'lucide-react'
 import { firstLine } from '../lib/blocks'
 import type { Note, NoteSummary, Tag } from '../../../shared/types'
 
@@ -17,7 +25,8 @@ function relative(iso: string): string {
 }
 
 export function NotesView({ archived }: { archived: boolean }): React.JSX.Element {
-  const { activeSpaceId, activeNoteId, setNote, spaces, theme } = useStore()
+  const { activeSpaceId, activeNoteId, setNote, spaces, theme, focusMode, setFocusMode } =
+    useStore()
   const [list, setList] = useState<NoteSummary[]>([])
   const [note, setNoteData] = useState<Note | null>(null)
   const [filter, setFilter] = useState('')
@@ -209,6 +218,18 @@ export function NotesView({ archived }: { archived: boolean }): React.JSX.Elemen
                 }`}
               >
                 <StarIcon className={`size-4 ${note.is_pinned ? 'fill-warn' : ''}`} />
+              </button>
+              <button
+                onClick={() => setFocusMode(!focusMode)}
+                title={focusMode ? 'Exit focus mode' : 'Focus mode'}
+                aria-label={focusMode ? 'Exit focus mode' : 'Enter focus mode'}
+                className="grid size-8 shrink-0 place-items-center rounded-md border border-border text-muted hover:border-accent hover:text-text"
+              >
+                {focusMode ? (
+                  <Minimize2Icon className="size-4" />
+                ) : (
+                  <Maximize2Icon className="size-4" />
+                )}
               </button>
               <SimpleSelect
                 value={String(note.space_id)}

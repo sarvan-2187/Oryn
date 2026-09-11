@@ -30,6 +30,8 @@ interface State {
    *  it true on mount if a PIN turns out to be set, so most users (no PIN)
    *  never see a flash of the lock screen. */
   locked: boolean
+  /** Hides TopBar/Sidebar for distraction-free writing. Toggled from Notes, Escape exits. */
+  focusMode: boolean
   /** UI scale. 1 is 100%; clamped so the app can never become unusable. */
   zoom: number
 
@@ -43,6 +45,7 @@ interface State {
   setPalette: (open: boolean) => void
   toggleSidebar: () => void
   setLocked: (locked: boolean) => void
+  setFocusMode: (v: boolean) => void
   setZoom: (factor: number) => void
   nudgeZoom: (delta: number) => void
 }
@@ -82,6 +85,7 @@ export const useStore = create<State>((set, get) => ({
   paletteOpen: false,
   sidebarOpen: startSidebar,
   locked: false,
+  focusMode: false,
   zoom: startZoom,
 
   loadSpaces: async () => set({ spaces: await window.oryn.spaces.list() }),
@@ -102,6 +106,7 @@ export const useStore = create<State>((set, get) => ({
     set({ sidebarOpen: next })
   },
   setLocked: (locked) => set({ locked }),
+  setFocusMode: (v) => set({ focusMode: v }),
   setZoom: (factor) => {
     const next = Math.min(ZOOM_MAX, Math.max(ZOOM_MIN, Number(factor.toFixed(2))))
     applyZoom(next)
