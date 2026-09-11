@@ -20,7 +20,8 @@ import type {
   ClassSlot,
   Capture,
   GlobalSearchResult,
-  Tag
+  Tag,
+  Template
 } from '../shared/types'
 
 export interface OrynApi {
@@ -50,6 +51,12 @@ export interface OrynApi {
   tags: {
     list(): Promise<Tag[]>
   }
+  templates: {
+    list(): Promise<Template[]>
+    create(title: string, items: string[]): Promise<Template>
+    delete(id: number): Promise<void>
+    spawn(id: number, spaceId: number, date?: string): Promise<Task[]>
+  }
   tasks: {
     list(opts?: {
       spaceId?: number | null
@@ -72,6 +79,7 @@ export interface OrynApi {
       date?: string,
       spaceId?: number | null
     ): Promise<{ due: number; overdue: number; done: number }>
+    suggestDueDate(spaceId: number, title: string): Promise<string | null>
   }
   habits: {
     list(spaceId?: number | null): Promise<Habit[]>

@@ -29,13 +29,20 @@ const api = {
   tags: {
     list: invoke('tags:list')
   },
+  templates: {
+    list: invoke('templates:list'),
+    create: invoke('templates:create'),
+    delete: invoke('templates:delete'),
+    spawn: invoke('templates:spawn')
+  },
   tasks: {
     list: invoke('tasks:list'),
     create: invoke('tasks:create'),
     update: invoke('tasks:update'),
     toggle: invoke('tasks:toggle'),
     delete: invoke('tasks:delete'),
-    counts: invoke('tasks:counts')
+    counts: invoke('tasks:counts'),
+    suggestDueDate: invoke('tasks:suggestDueDate')
   },
   habits: {
     list: invoke('habits:list'),

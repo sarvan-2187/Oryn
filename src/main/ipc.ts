@@ -7,6 +7,7 @@ import * as journal from './db/queries/journal'
 import * as search from './db/queries/search'
 import * as tags from './db/queries/tags'
 import * as links from './db/queries/links'
+import * as templates from './db/queries/templates'
 import * as stats from './db/queries/stats'
 import * as planner from './db/queries/planner'
 import { backupNow, exportMarkdown, revealPath } from './backup'
@@ -35,12 +36,18 @@ const handlers = {
 
   'tags:list': tags.listTags,
 
+  'templates:list': templates.listTemplates,
+  'templates:create': templates.createTemplate,
+  'templates:delete': templates.deleteTemplate,
+  'templates:spawn': templates.spawnTemplate,
+
   'tasks:list': tasks.listTasks,
   'tasks:create': tasks.createTask,
   'tasks:update': tasks.updateTask,
   'tasks:toggle': tasks.toggleTask,
   'tasks:delete': tasks.deleteTask,
   'tasks:counts': tasks.taskCounts,
+  'tasks:suggestDueDate': tasks.suggestDueDate,
 
   'habits:list': habits.listHabits,
   'habits:forDate': habits.habitsForDate,
