@@ -173,6 +173,15 @@ export const migrations: string[] = [
     PRIMARY KEY (source_id, target_id)
   );
   CREATE INDEX idx_note_links_target ON note_links(target_id);
+  `,
+  // 004 - checklist templates
+  `
+  CREATE TABLE templates (
+    id         INTEGER PRIMARY KEY AUTOINCREMENT,
+    title      TEXT    NOT NULL,
+    items_json TEXT    NOT NULL DEFAULT '[]',
+    created_at TEXT    NOT NULL DEFAULT (datetime('now'))
+  );
   `
 ]
 
