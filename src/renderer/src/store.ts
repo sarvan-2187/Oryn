@@ -19,6 +19,9 @@ interface State {
   activeSpaceId: number | null
   activeView: View
   activeNoteId: number | null
+  /** Set when a search result should be scrolled to and highlighted once the target view mounts. */
+  focusTaskId: number | null
+  focusHabitId: number | null
   theme: 'dark' | 'light'
   paletteOpen: boolean
   sidebarOpen: boolean
@@ -29,6 +32,8 @@ interface State {
   setSpace: (id: number | null) => void
   setView: (v: View) => void
   setNote: (id: number | null) => void
+  setFocusTaskId: (id: number | null) => void
+  setFocusHabitId: (id: number | null) => void
   toggleTheme: () => void
   setPalette: (open: boolean) => void
   toggleSidebar: () => void
@@ -65,6 +70,8 @@ export const useStore = create<State>((set, get) => ({
   activeSpaceId: null,
   activeView: 'dashboard',
   activeNoteId: null,
+  focusTaskId: null,
+  focusHabitId: null,
   theme: startTheme,
   paletteOpen: false,
   sidebarOpen: startSidebar,
@@ -74,6 +81,8 @@ export const useStore = create<State>((set, get) => ({
   setSpace: (id) => set({ activeSpaceId: id, activeNoteId: null }),
   setView: (v) => set({ activeView: v, activeNoteId: null }),
   setNote: (id) => set({ activeNoteId: id }),
+  setFocusTaskId: (id) => set({ focusTaskId: id }),
+  setFocusHabitId: (id) => set({ focusHabitId: id }),
   toggleTheme: () => {
     const next = get().theme === 'dark' ? 'light' : 'dark'
     applyTheme(next)
