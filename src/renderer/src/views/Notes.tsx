@@ -5,7 +5,7 @@ import { confirmDialog } from '../components/ConfirmDialog'
 import { SimpleSelect } from '../components/ui/simple-select'
 import { ArchiveIcon, ArchiveRestoreIcon, PlusIcon, StarIcon, Trash2Icon } from 'lucide-react'
 import { firstLine } from '../lib/blocks'
-import type { Note, NoteSummary } from '../../../shared/types'
+import type { Note, NoteSummary, Tag } from '../../../shared/types'
 
 function relative(iso: string): string {
   const then = new Date(iso.replace(' ', 'T') + 'Z').getTime()
@@ -21,13 +21,19 @@ export function NotesView({ archived }: { archived: boolean }): React.JSX.Elemen
   const [list, setList] = useState<NoteSummary[]>([])
   const [note, setNoteData] = useState<Note | null>(null)
   const [filter, setFilter] = useState('')
+  const [tags, setTags] = useState<Tag[]>([])
+  const [tagId, setTagId] = useState<number | null>(null)
+
+  useEffect(() => {
+    void window.oryn.tags.list().then(setTags)
+  }, [])
 
   const refresh = useCallback(async () => {
     const rows = filter.trim()
       ? await window.oryn.notes.search(filter, activeSpaceId)
-      : await window.oryn.notes.list({ spaceId: activeSpaceId, archived })
+      : await window.oryn.notes.list({ spaceId: activeSpaceId, archived, tagId })
     setList(rows)
-  }, [activeSpaceId, archived, filter])
+  }, [activeSpaceId, archived, filter, tagId])
 
   useEffect(() => {
     void refresh()
@@ -123,6 +129,24 @@ export function NotesView({ archived }: { archived: boolean }): React.JSX.Elemen
             </button>
           )}
         </div>
+
+        {tags.length > 0 && (
+          <div className="flex flex-wrap gap-1 px-2 pb-2">
+            {tags.map((t) => (
+              <button
+                key={t.id}
+                onClick={() => setTagId(tagId === t.id ? null : t.id)}
+                className={`rounded-full border px-2 py-0.5 text-[13px] transition-colors ${
+                  tagId === t.id
+                    ? 'border-accent bg-accent/15 text-accent'
+                    : 'border-border text-muted hover:border-accent hover:text-text'
+                }`}
+              >
+                #{t.name}
+              </button>
+            ))}
+          </div>
+        )}
 
         <div className="flex-1 overflow-y-auto px-2 pb-2">
           {list.length === 0 && (
