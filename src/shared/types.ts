@@ -185,3 +185,10 @@ export interface Tag {
   id: number
   name: string
 }
+
+export interface Template {
+  id: number
+  title: string
+  items: string[]
+  created_at: string
+}
