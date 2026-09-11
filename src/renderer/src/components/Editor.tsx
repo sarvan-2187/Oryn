@@ -15,6 +15,22 @@ interface Props {
 
 const SAVE_DEBOUNCE_MS = 500
 
+/**
+ * BlockNote's uploadFile just needs a URL back. A data: URL — the pasted
+ * image's own bytes, base64-encoded — works directly in an <img> tag with
+ * no file on disk, no custom protocol, and no IPC round-trip. ponytail: no
+ * size limit or compression, so a very large paste bloats this note's
+ * content_json; add a cap only if that turns out to matter in practice.
+ */
+function fileToDataUrl(file: File): Promise<string> {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader()
+    reader.onload = () => resolve(reader.result as string)
+    reader.onerror = () => reject(reader.error)
+    reader.readAsDataURL(file)
+  })
+}
+
 export function Editor({ noteId, initialContent, theme, onSave }: Props): React.JSX.Element {
   const parsed = useMemo<PartialBlock[] | undefined>(() => {
     try {
@@ -25,7 +41,9 @@ export function Editor({ noteId, initialContent, theme, onSave }: Props): React.
     }
   }, [initialContent])
 
-  const editor = useCreateBlockNote({ initialContent: parsed }, [noteId])
+  const editor = useCreateBlockNote({ initialContent: parsed, uploadFile: fileToDataUrl }, [
+    noteId
+  ])
 
   const timer = useRef<ReturnType<typeof setTimeout> | null>(null)
   const pending = useRef<(() => void) | null>(null)
