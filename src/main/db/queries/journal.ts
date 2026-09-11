@@ -1,6 +1,6 @@
 import { getDb } from '../connection'
 import { today } from '../../../shared/dates'
-import type { JournalEntry } from '../../../shared/types'
+import type { JournalEntry, JournalSearchResult } from '../../../shared/types'
 
 export type { JournalEntry }
 
@@ -25,4 +25,20 @@ export function saveJournal(date: string, contentJson: string, contentText: stri
          updated_at   = datetime('now')`
     )
     .run(date, contentJson, contentText)
+}
+
+/**
+ * Read-only content search. Separate from getJournal, which creates an empty
+ * row for any date that doesn't exist yet — wrong behaviour while searching.
+ * `term` is a caller-supplied LIKE pattern (already wrapped in `%...%` and
+ * escaped), so this function stays a thin, parameterized query.
+ */
+export function searchJournal(term: string): JournalSearchResult[] {
+  return getDb()
+    .prepare(
+      `SELECT date, substr(content_text, 1, 140) AS excerpt FROM journal
+       WHERE content_text LIKE ? ESCAPE '\\' AND content_text != ''
+       ORDER BY date DESC LIMIT 5`
+    )
+    .all(term) as JournalSearchResult[]
 }
