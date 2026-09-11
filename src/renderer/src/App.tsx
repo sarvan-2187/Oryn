@@ -4,6 +4,7 @@ import { TopBar } from './components/TopBar'
 import { Sidebar } from './components/Sidebar'
 import { CommandPalette } from './components/CommandPalette'
 import { ConfirmDialog } from './components/ConfirmDialog'
+import { LockScreen } from './components/LockScreen'
 import { DashboardView } from './views/Dashboard'
 import { NotesView } from './views/Notes'
 import { TasksView } from './views/Tasks'
@@ -16,11 +17,18 @@ import { InboxView } from './views/Inbox'
 import { SettingsView } from './views/Settings'
 
 export default function App(): React.JSX.Element {
-  const { loadSpaces, activeView, activeSpaceId, setPalette, paletteOpen, sidebarOpen } = useStore()
+  const { loadSpaces, activeView, activeSpaceId, setPalette, paletteOpen, sidebarOpen, locked, setLocked } =
+    useStore()
 
   useEffect(() => {
     void loadSpaces()
   }, [loadSpaces])
+
+  useEffect(() => {
+    void window.oryn.lock.isSet().then((set) => {
+      if (set) setLocked(true)
+    })
+  }, [setLocked])
 
   useEffect(() => {
     const onKey = (e: KeyboardEvent): void => {
@@ -55,24 +63,30 @@ export default function App(): React.JSX.Element {
 
   return (
     <div className="flex h-full flex-col">
-      <TopBar />
-      <div className="flex min-h-0 flex-1">
-        {sidebarOpen && <Sidebar />}
-        <main className="flex min-w-0 flex-1">
-          {activeView === 'dashboard' && <DashboardView key={key} />}
-          {activeView === 'notes' && <NotesView key={key} archived={false} />}
-          {activeView === 'archive' && <NotesView key={key} archived />}
-          {activeView === 'tasks' && <TasksView key={key} />}
-          {activeView === 'board' && <BoardView key={key} />}
-          {activeView === 'habits' && <HabitsView key={key} />}
-          {activeView === 'activity' && <ActivityView key={key} />}
-          {activeView === 'review' && <ReviewView key={key} />}
-          {activeView === 'planner' && <PlannerView key={key} />}
-          {activeView === 'inbox' && <InboxView key={key} />}
-          {activeView === 'settings' && <SettingsView key={key} />}
-        </main>
-      </div>
-      {paletteOpen && <CommandPalette />}
+      {locked ? (
+        <LockScreen />
+      ) : (
+        <>
+          <TopBar />
+          <div className="flex min-h-0 flex-1">
+            {sidebarOpen && <Sidebar />}
+            <main className="flex min-w-0 flex-1">
+              {activeView === 'dashboard' && <DashboardView key={key} />}
+              {activeView === 'notes' && <NotesView key={key} archived={false} />}
+              {activeView === 'archive' && <NotesView key={key} archived />}
+              {activeView === 'tasks' && <TasksView key={key} />}
+              {activeView === 'board' && <BoardView key={key} />}
+              {activeView === 'habits' && <HabitsView key={key} />}
+              {activeView === 'activity' && <ActivityView key={key} />}
+              {activeView === 'review' && <ReviewView key={key} />}
+              {activeView === 'planner' && <PlannerView key={key} />}
+              {activeView === 'inbox' && <InboxView key={key} />}
+              {activeView === 'settings' && <SettingsView key={key} />}
+            </main>
+          </div>
+          {paletteOpen && <CommandPalette />}
+        </>
+      )}
       <ConfirmDialog />
     </div>
   )
