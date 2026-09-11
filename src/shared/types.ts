@@ -156,3 +156,27 @@ export interface Capture {
   created_at: string
   processed_at: string | null
 }
+
+export interface TaskSearchResult {
+  id: number
+  title: string
+  status: TaskStatus
+  due_date: string | null
+}
+
+export interface HabitSearchResult {
+  id: number
+  name: string
+}
+
+export interface JournalSearchResult {
+  date: string
+  excerpt: string
+}
+
+export interface GlobalSearchResult {
+  notes: NoteSummary[]
+  tasks: TaskSearchResult[]
+  habits: HabitSearchResult[]
+  journal: JournalSearchResult[]
+}
