@@ -1,8 +1,28 @@
 # Oryn
 
+![License](https://img.shields.io/badge/license-MIT-blue)
+![Platform](https://img.shields.io/badge/platform-Windows-0078D6)
+![Version](https://img.shields.io/badge/version-0.1.0-brightgreen)
+![Electron](https://img.shields.io/badge/built%20with-Electron-47848F)
+![Local first](https://img.shields.io/badge/local--first-no%20cloud%2C%20no%20account-success)
+
 A lightweight personal productivity OS for Windows — notes, tasks, habits,
 journal, and planning in one local-first desktop app. No account, no cloud,
 no subscription: everything lives in one SQLite file on your machine.
+
+## Screenshots
+
+<!--
+  Drop image files into docs/screenshots/ using the names below (or send
+  them in chat and they'll be saved here), then this section renders them.
+  Suggested shots: the Today dashboard, Notes with an open note, the Tasks
+  board, Habits, and the Review screen.
+-->
+
+| | |
+|---|---|
+| ![Dashboard](docs/screenshots/dashboard.png) | ![Notes](docs/screenshots/notes.png) |
+| ![Board](docs/screenshots/board.png) | ![Habits](docs/screenshots/habits.png) |
 
 ## Features (v0.1.0)
 
