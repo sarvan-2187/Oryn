@@ -1,4 +1,4 @@
-import { app, shell, BrowserWindow, ipcMain, Menu, nativeImage, Tray } from 'electron'
+import { app, shell, dialog, BrowserWindow, ipcMain, Menu, nativeImage, Tray } from 'electron'
 import { join } from 'node:path'
 import { getDb, closeDb } from './db/connection'
 import { carryOverMissedTasks } from './db/queries/tasks'
@@ -9,6 +9,16 @@ import { startReminders } from './reminders'
 import { startPomodoroTicker } from './pomodoro'
 
 const isDev = !app.isPackaged
+
+// A defensive last line: anything that throws or rejects outside the
+// whenReady try/catch (a stray async call, a later IPC handler) otherwise
+// crashes or hangs the process invisibly. Surface it instead.
+process.on('uncaughtException', (err) => {
+  dialog.showErrorBox('Oryn hit an unexpected error', err.stack ?? String(err))
+})
+process.on('unhandledRejection', (reason) => {
+  dialog.showErrorBox('Oryn hit an unexpected error', String(reason))
+})
 
 /** Shared with the renderer's top bar so the two line up exactly. */
 const TITLEBAR_HEIGHT = 46
@@ -21,6 +31,15 @@ const OVERLAY = {
 
 /** Kept alive at module scope: a garbage-collected Tray disappears from the shelf. */
 let tray: Tray | null = null
+
+/**
+ * The main app window specifically — not just "some window". Other windows
+ * (quick capture, the mini Pomodoro, a popped-out note) also exist at times,
+ * and BrowserWindow.getAllWindows()[0] has no guarantee of picking this one
+ * over them, which used to mean the Start Menu icon or tray could silently
+ * focus a tiny popup instead of opening the app.
+ */
+let mainWindow: BrowserWindow | null = null
 
 /** Set once reminders start; cleared and called on quit to stop the hourly check. */
 let stopReminders: (() => void) | null = null
@@ -38,14 +57,13 @@ function iconPath(): string {
 }
 
 function showMainWindow(): void {
-  const [win] = BrowserWindow.getAllWindows().filter((w) => !w.isDestroyed())
-  if (!win) {
+  if (!mainWindow || mainWindow.isDestroyed()) {
     createWindow()
     return
   }
-  if (win.isMinimized()) win.restore()
-  win.show()
-  win.focus()
+  if (mainWindow.isMinimized()) mainWindow.restore()
+  mainWindow.show()
+  mainWindow.focus()
 }
 
 function buildTray(): void {
@@ -92,7 +110,25 @@ function createWindow(): void {
     }
   })
 
+  mainWindow = win
+  win.on('closed', () => {
+    if (mainWindow === win) mainWindow = null
+  })
+
   win.once('ready-to-show', () => win.show())
+
+  // A load failure otherwise leaves a permanently blank/hidden window with
+  // no visible sign anything went wrong — show it and say so instead.
+  win.webContents.on('did-fail-load', (_event, errorCode, errorDescription) => {
+    if (errorCode === -3) return // ERR_ABORTED: normal during fast navigation, not a real failure
+    win.show()
+    void dialog.showMessageBox(win, {
+      type: 'error',
+      title: 'Oryn failed to load',
+      message: 'The app window opened but its content failed to load.',
+      detail: `${errorDescription} (${errorCode})`
+    })
+  })
 
   // External links open in the real browser, never inside the app shell.
   win.webContents.setWindowOpenHandler(({ url }) => {
@@ -112,42 +148,46 @@ const needsLock = !process.env.ORYN_DB_PATH
 if (needsLock && !app.requestSingleInstanceLock()) {
   app.quit()
 } else {
-  app.on('second-instance', () => {
-    const [win] = BrowserWindow.getAllWindows()
-    if (win) {
-      if (win.isMinimized()) win.restore()
-      win.focus()
-    }
-  })
+  app.on('second-instance', showMainWindow)
 
+  // A startup step throwing here used to fail silently — no window, no
+  // error, just a process that sits there doing nothing. Any failure now
+  // shows a real dialog before quitting, so "nothing happens" always has an
+  // explanation on screen instead of requiring a debugger to find.
   void app.whenReady().then(() => {
-    // Windows groups taskbar buttons and routes notifications by this id.
-    // The taskbar *icon* still comes from the running .exe, so in dev it is
-    // Electron's own; the packaged Oryn.exe embeds resources/icon.png.
-    if (process.platform === 'win32') app.setAppUserModelId('com.oryn.app')
+    try {
+      // Windows groups taskbar buttons and routes notifications by this id.
+      // The taskbar *icon* still comes from the running .exe, so in dev it is
+      // Electron's own; the packaged Oryn.exe embeds resources/icon.png.
+      if (process.platform === 'win32') app.setAppUserModelId('com.oryn.app')
 
-    getDb() // opens the file and runs migrations before any IPC can arrive
-    carryOverMissedTasks()
-    registerIpc()
+      getDb() // opens the file and runs migrations before any IPC can arrive
+      carryOverMissedTasks()
+      registerIpc()
 
-    // Repaints the native window buttons when the renderer switches theme.
-    ipcMain.handle('window:theme', (event, theme: 'dark' | 'light') => {
-      const win = BrowserWindow.fromWebContents(event.sender)
-      win?.setTitleBarOverlay?.({ ...OVERLAY[theme], height: TITLEBAR_HEIGHT })
-    })
+      // Repaints the native window buttons when the renderer switches theme.
+      ipcMain.handle('window:theme', (event, theme: 'dark' | 'light') => {
+        const win = BrowserWindow.fromWebContents(event.sender)
+        win?.setTitleBarOverlay?.({ ...OVERLAY[theme], height: TITLEBAR_HEIGHT })
+      })
 
-    registerCaptureIpc()
-    // A hotkey the OS refuses must not leave the app silently without one.
-    if (!registerHotkey(currentHotkey())) console.warn('hotkey rejected:', currentHotkey())
-    buildTray()
-    stopReminders = startReminders(showMainWindow)
-    stopPomodoroTicker = startPomodoroTicker()
+      registerCaptureIpc()
+      // A hotkey the OS refuses must not leave the app silently without one.
+      if (!registerHotkey(currentHotkey())) console.warn('hotkey rejected:', currentHotkey())
+      buildTray()
+      stopReminders = startReminders(showMainWindow)
+      stopPomodoroTicker = startPomodoroTicker()
 
-    createWindow()
+      createWindow()
 
-    app.on('activate', () => {
-      if (BrowserWindow.getAllWindows().length === 0) createWindow()
-    })
+      app.on('activate', showMainWindow)
+    } catch (err) {
+      dialog.showErrorBox(
+        'Oryn failed to start',
+        err instanceof Error ? (err.stack ?? err.message) : String(err)
+      )
+      app.quit()
+    }
   })
 
   app.on('window-all-closed', () => {
