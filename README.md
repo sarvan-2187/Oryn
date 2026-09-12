@@ -12,16 +12,9 @@ no subscription: everything lives in one SQLite file on your machine.
 
 ## Screenshots
 
-<!--
-  Drop image files into docs/screenshots/ using the names below (or send
-  them in chat and they'll be saved here), then this section renders them.
-  Suggested shots: the Today dashboard, Notes with an open note, the Tasks
-  board, Habits, and the Review screen.
--->
-
 | | |
 |---|---|
-| ![Dashboard](docs/screenshots/dashboard.png) | ![Notes](docs/screenshots/notes.png) |
+| ![Dashboard](docs/screenshots/dashboard.png) | ![Tasks](docs/screenshots/tasks.png) |
 | ![Board](docs/screenshots/board.png) | ![Habits](docs/screenshots/habits.png) |
 
 ## Features (v0.1.0)
